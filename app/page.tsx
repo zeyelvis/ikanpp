@@ -10,6 +10,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { SearchResults } from '@/components/home/SearchResults';
 import { useHomePage } from '@/lib/hooks/useHomePage';
 import { useLatencyPing } from '@/lib/hooks/useLatencyPing';
+import { AppDownloadBanner } from '@/components/home/AppDownloadBanner';
 
 function HomePage() {
   const {
@@ -86,6 +87,9 @@ function HomePage() {
 
       {/* Watch History Sidebar - Right */}
       <WatchHistorySidebar />
+
+      {/* App Download Banner */}
+      <AppDownloadBanner />
     </div>
   );
 }

@@ -62,15 +62,15 @@ export function Navbar({ onReset, isPremiumMode = false }: NavbarProps) {
                         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                             {/* IPTV Link - only show if user has iptv_access or no auth configured */}
                             {hasPermission('iptv_access') && (
-                            <Link
-                                href="/iptv"
-                                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-[var(--radius-full)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
-                                aria-label="直播"
-                                title="直播"
-                                data-focusable
-                            >
-                                <Icons.TV size={16} className="sm:w-5 sm:h-5" />
-                            </Link>
+                                <Link
+                                    href="/iptv"
+                                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-[var(--radius-full)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                    aria-label="直播"
+                                    title="直播"
+                                    data-focusable
+                                >
+                                    <Icons.TV size={16} className="sm:w-5 sm:h-5" />
+                                </Link>
                             )}
 
                             {/* User Info */}
@@ -97,6 +97,19 @@ export function Navbar({ onReset, isPremiumMode = false }: NavbarProps) {
                                     </button>
                                 </div>
                             )}
+                            <Link
+                                href="/download"
+                                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-[var(--radius-full)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                aria-label="下载 App"
+                                title="下载 App"
+                                data-focusable
+                            >
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg>
+                            </Link>
                             <a
                                 href="https://github.com/KuekHaoYang/KVideo"
                                 target="_blank"
