@@ -74,6 +74,13 @@ export function useHlsPlayer({
                     enableWorker: true,
                     lowLatencyMode: false,
 
+                    // CORS fix: some CDNs (e.g. wujinapi) return conflicting headers
+                    // (Access-Control-Allow-Origin: * AND Access-Control-Allow-Credentials: true)
+                    // which causes browsers to block requests with credentials
+                    xhrSetup: (xhr: XMLHttpRequest) => {
+                        xhr.withCredentials = false;
+                    },
+
                     // Buffer Settings
                     maxBufferLength: 60,
                     maxMaxBufferLength: 120,

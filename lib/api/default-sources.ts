@@ -29,8 +29,8 @@ export const DEFAULT_SOURCES: VideoSource[] = [
     searchPath: '/api.php/provide/vod',
     detailPath: '/api.php/provide/vod',
     group: 'normal',
-    enabled: true,
-    priority: 3, // 589ms，10万资源，4K
+    enabled: false, // CDN (qsstvw.com) 不可达，搜索正常但视频无法播放
+    priority: 3,
   },
   {
     id: 'subo',
