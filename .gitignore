@@ -42,3 +42,14 @@ next-env.d.ts
 
 # unused/generated files
 contrast-test-results.json
+
+# App builds & native artifacts
+/builds
+/android-mobile/.gradle
+/android-mobile/app/build
+/android-mobile/build
+/android-mobile/local.properties
+/ios/KVideo/build
+/ios/KVideo/KVideo.xcodeproj
+/macos/KVideo/build
+/macos/KVideo/KVideo.xcodeproj
