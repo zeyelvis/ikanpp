@@ -161,13 +161,13 @@ export const useIPTVStore = create<IPTVStore>()(
     }),
     {
       name: 'kvideo-iptv-store',
-      version: 7,
+      version: 8,
       migrate: (persistedState: any, version: number) => {
-        // 默认源：ioptu/IPTV.txt2m3u.player（每小时自动更新，153频道，5/5通过代理可播放）
+        // 默认源：ioptu/IPTV.txt2m3u.player 咪咕源（每小时自动更新，103频道，分片完整可播放）
         const defaultSource = {
           id: 'default-ioptu-iptv',
           name: '中国直播 (自动更新)',
-          url: 'https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/iptv.m3u',
+          url: 'https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/migu.m3u',
           addedAt: 0,
         };
 
