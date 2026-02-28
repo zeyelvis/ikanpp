@@ -76,7 +76,7 @@ export const MovieCard = memo(function MovieCard({ movie, onMovieClick }: MovieC
             </div>
           )}
           {/* 评分标签 */}
-          {movie.rate && parseFloat(movie.rate) > 0 && (
+          {movie.rate && parseFloat(movie.rate) > 0 ? (
             <div
               className="absolute top-2 right-2 bg-black/80 px-2.5 py-1.5 flex items-center gap-1.5 rounded-[var(--radius-full)]"
             >
@@ -84,6 +84,12 @@ export const MovieCard = memo(function MovieCard({ movie, onMovieClick }: MovieC
               <span className="text-xs font-bold text-white">
                 {movie.rate}
               </span>
+            </div>
+          ) : (
+            <div
+              className="absolute top-2 right-2 bg-emerald-500/90 px-2.5 py-1 rounded-[var(--radius-full)]"
+            >
+              <span className="text-[10px] font-bold text-white">🆕 新上线</span>
             </div>
           )}
           {/* Hover 时底部渐变叠加 - 播放提示 */}

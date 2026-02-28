@@ -60,24 +60,6 @@ function PlayerContent() {
     const normalizedTitle = title.toLowerCase().trim();
     let redirected = false;
 
-    // 消歧义评分函数：根据 type_name / vod_year 匹配程度打分
-    const scoreMatch = (v: any): number => {
-      let score = 0;
-      if (expectedType) {
-        const typeName = (v.type_name || '').toLowerCase();
-        const isMovie = typeName.includes('电影') || typeName.includes('movie');
-        const isTv = typeName.includes('连续剧') || typeName.includes('电视') || typeName.includes('tv') || typeName.includes('动漫');
-        if (expectedType === 'movie' && isMovie) score += 10;
-        if (expectedType === 'tv' && isTv) score += 10;
-        // 惩罚类型不匹配
-        if (expectedType === 'movie' && isTv) score -= 5;
-        if (expectedType === 'tv' && isMovie) score -= 5;
-      }
-      if (expectedYear && v.vod_year) {
-        if (String(v.vod_year) === String(expectedYear)) score += 5;
-      }
-      return score;
-    };
 
     (async () => {
       try {
@@ -114,25 +96,30 @@ function PlayerContent() {
             try {
               const data = JSON.parse(line.slice(6));
               if (data.type === 'videos' && data.videos && data.videos.length > 0) {
+                // 0. 过滤掉解说类视频
+                const isCommentary = (v: any) => {
+                  const name = (v.vod_name || '').toLowerCase();
+                  const typeName = (v.type_name || '').toLowerCase();
+                  return name.includes('解说') || typeName.includes('解说');
+                };
+                const noCommentary = data.videos.filter((v: any) => !isCommentary(v));
+                const videoPool = noCommentary.length > 0 ? noCommentary : data.videos;
+
                 // 1. 精确匹配同名结果
-                const exactMatches = data.videos.filter((v: any) =>
+                const exactMatches = videoPool.filter((v: any) =>
                   v.vod_name?.toLowerCase().trim() === normalizedTitle
                 );
                 // 2. 部分匹配
                 const partialMatches = exactMatches.length === 0
-                  ? data.videos.filter((v: any) =>
+                  ? videoPool.filter((v: any) =>
                     v.vod_name?.toLowerCase().trim().includes(normalizedTitle) ||
                     normalizedTitle.includes(v.vod_name?.toLowerCase().trim())
                   )
                   : [];
 
-                // 3. 选择候选列表，按消歧义评分排序
+                // 3. 选择最佳匹配
                 let candidates = exactMatches.length > 0 ? exactMatches : partialMatches;
-                if (candidates.length === 0) candidates = [data.videos[0]]; // 兜底
-
-                if (expectedType || expectedYear) {
-                  candidates.sort((a: any, b: any) => scoreMatch(b) - scoreMatch(a));
-                }
+                if (candidates.length === 0) candidates = [videoPool[0]];
 
                 const match = candidates[0];
 
@@ -153,6 +140,7 @@ function PlayerContent() {
                     params.set('id', String(match.vod_id));
                     params.set('source', match.source);
                     params.set('title', title);
+                    if (expectedType) params.set('type', expectedType); // 保留类型参数
                     if (isPremium) params.set('premium', '1');
                     if (foundSources.length > 0) {
                       params.set('groupedSources', JSON.stringify(foundSources));
@@ -342,13 +330,20 @@ function PlayerContent() {
             try {
               const data = JSON.parse(line.slice(6));
               if (data.type === 'videos' && data.videos && data.videos.length > 0) {
-                // Priority: exact match > partial match > first result
-                const match = data.videos.find((v: any) =>
+                // 过滤解说类视频
+                const pool = data.videos.filter((v: any) => {
+                  const name = (v.vod_name || '').toLowerCase();
+                  const tn = (v.type_name || '').toLowerCase();
+                  return !name.includes('解说') && !tn.includes('解说');
+                });
+                const videoPool = pool.length > 0 ? pool : data.videos;
+
+                const match = videoPool.find((v: any) =>
                   v.vod_name?.toLowerCase().trim() === normalizedTitle
-                ) || data.videos.find((v: any) =>
+                ) || videoPool.find((v: any) =>
                   v.vod_name?.toLowerCase().trim().includes(normalizedTitle) ||
                   normalizedTitle.includes(v.vod_name?.toLowerCase().trim())
-                ) || data.videos[0]; // 兜底：用搜索结果第一个
+                ) || videoPool[0];
 
                 if (match && !cancelled) {
                   found.push({
@@ -372,7 +367,7 @@ function PlayerContent() {
     })();
 
     return () => { cancelled = true; };
-  }, [title, source, groupedSourcesParam, isPremium, isTitleOnlyMode]);
+  }, [title, source, groupedSourcesParam, isPremium, isTitleOnlyMode, expectedType]);
 
   // Track current source for switching
   const [currentSourceId, setCurrentSourceId] = useState(source);

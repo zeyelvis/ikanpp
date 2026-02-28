@@ -182,9 +182,13 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                                     {current.title}
                                 </h2>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    {current.rate && parseFloat(current.rate) > 0 && (
+                                    {current.rate && parseFloat(current.rate) > 0 ? (
                                         <span className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                                             ★ {current.rate}
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-1 text-emerald-400 font-bold text-xs px-1.5 py-0.5 bg-emerald-400/15 rounded">
+                                            🆕 新上线
                                         </span>
                                     )}
                                     {current.types && current.types.length > 0 && (
@@ -277,9 +281,13 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                                             {current.title}
                                         </h2>
                                         <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                            {current.rate && parseFloat(current.rate) > 0 && (
+                                            {current.rate && parseFloat(current.rate) > 0 ? (
                                                 <span className="flex items-center gap-1 text-yellow-400 font-bold text-sm">
                                                     ★ {current.rate}
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-emerald-400 font-bold text-xs px-1.5 py-0.5 bg-emerald-400/15 rounded">
+                                                    🆕 新上线
                                                 </span>
                                             )}
                                             {current.year && (
@@ -337,7 +345,10 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                                                 <div key={idx} className={`flex items-center gap-2 text-xs px-2 py-1 rounded ${idx === currentIndex ? 'bg-white/10 text-white' : 'text-white/40'}`}>
                                                     <span className="w-4 text-right font-bold text-yellow-400/70">{idx + 1}</span>
                                                     <span className="truncate flex-1">{item.title}</span>
-                                                    {item.rate && parseFloat(item.rate) > 0 && <span className="text-yellow-400/60 text-[10px]">★ {item.rate}</span>}
+                                                    {item.rate && parseFloat(item.rate) > 0
+                                                        ? <span className="text-yellow-400/60 text-[10px]">★ {item.rate}</span>
+                                                        : <span className="text-emerald-400/60 text-[10px]">NEW</span>
+                                                    }
                                                 </div>
                                             ))}
                                         </div>

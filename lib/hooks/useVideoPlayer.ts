@@ -110,14 +110,45 @@ export function useVideoPlayer(
         setLoading(false);
 
         if (data.data.episodes && data.data.episodes.length > 0) {
+          // 智能选集：优先 HD/高清，避免 TC/抢先版
+          const episodes = data.data.episodes;
           const latestIsReversed = isReversedRef.current;
           const latestEpisodeParam = episodeParamRef.current;
 
-          const defaultIndex = latestIsReversed ? data.data.episodes.length - 1 : 0;
-          const episodeIndex = latestEpisodeParam ? parseInt(latestEpisodeParam, 10) : defaultIndex;
-          const validIndex = (episodeIndex >= 0 && episodeIndex < data.data.episodes.length) ? episodeIndex : defaultIndex;
+          let defaultIndex = latestIsReversed ? episodes.length - 1 : 0;
 
-          const episodeUrl = data.data.episodes[validIndex].url;
+          // 如果没有手动指定集数，智能选择最佳画质
+          if (!latestEpisodeParam) {
+            const hdKeywords = ['hd', '高清', '蓝光', '4k', '1080', '超清', '720'];
+            const lowKeywords = ['tc', '抢先', '枪版', 'ts', 'cam', '预告'];
+
+            // 优先找 HD/高清集
+            const hdIndex = episodes.findIndex((ep: { name?: string }) => {
+              const name = (ep.name || '').toLowerCase();
+              return hdKeywords.some(kw => name.includes(kw));
+            });
+
+            if (hdIndex !== -1) {
+              defaultIndex = hdIndex;
+            } else {
+              // 如果第一集是 TC/抢先，尝试选下一个非低质的
+              const firstName = (episodes[defaultIndex]?.name || '').toLowerCase();
+              const isLowQuality = lowKeywords.some(kw => firstName.includes(kw));
+              if (isLowQuality && episodes.length > 1) {
+                const betterIndex = episodes.findIndex((ep: { name?: string }, i: number) => {
+                  if (i === defaultIndex) return false;
+                  const name = (ep.name || '').toLowerCase();
+                  return !lowKeywords.some(kw => name.includes(kw));
+                });
+                if (betterIndex !== -1) defaultIndex = betterIndex;
+              }
+            }
+          }
+
+          const episodeIndex = latestEpisodeParam ? parseInt(latestEpisodeParam, 10) : defaultIndex;
+          const validIndex = (episodeIndex >= 0 && episodeIndex < episodes.length) ? episodeIndex : defaultIndex;
+
+          const episodeUrl = episodes[validIndex].url;
           setCurrentEpisode(validIndex);
           setPlayUrl(episodeUrl);
         } else {

@@ -83,17 +83,25 @@ export function useSearchAction({ state, onCacheUpdate, onUrlUpdate }: UseSearch
                 currentQuery: searchQuery.trim(),
                 onStart: (total) => setTotalSources(total),
                 onVideos: (newVideos, sourceId) => {
+                    // 过滤掉解说类视频（电影解说、影视解说等不是正片）
+                    const filtered = newVideos.filter((v: any) => {
+                        const name = (v.vod_name || '').toLowerCase();
+                        const typeName = (v.type_name || '').toLowerCase();
+                        return !name.includes('解说') && !typeName.includes('解说');
+                    });
+                    if (filtered.length === 0) return; // 全部都是解说，跳过
+
                     // Optimized: Insert new videos in sorted position
-                    setResults((prev) => binaryInsertVideos(prev, newVideos));
+                    setResults((prev) => binaryInsertVideos(prev, filtered));
 
                     // Update source stats (accumulate across pages)
                     const existing = sourcesMap.get(sourceId);
                     if (existing) {
-                        existing.count += newVideos.length;
+                        existing.count += filtered.length;
                     } else {
                         sourcesMap.set(sourceId, {
-                            count: newVideos.length,
-                            name: newVideos[0]?.sourceName || sourceId,
+                            count: filtered.length,
+                            name: filtered[0]?.sourceName || sourceId,
                         });
                     }
                 },
@@ -178,8 +186,14 @@ export function useSearchAction({ state, onCacheUpdate, onUrlUpdate }: UseSearch
                 currentQuery: params.query,
                 onStart: () => { },
                 onVideos: (newVideos) => {
-                    // Append new videos to existing results
-                    setResults((prev) => binaryInsertVideos(prev, newVideos));
+                    // 过滤解说类视频
+                    const filtered = newVideos.filter((v: any) => {
+                        const name = (v.vod_name || '').toLowerCase();
+                        const typeName = (v.type_name || '').toLowerCase();
+                        return !name.includes('解说') && !typeName.includes('解说');
+                    });
+                    if (filtered.length === 0) return;
+                    setResults((prev) => binaryInsertVideos(prev, filtered));
                 },
                 onProgress: (_, found) => {
                     setTotalVideosFound((prev) => prev + found);
