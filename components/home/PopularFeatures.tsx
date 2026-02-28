@@ -61,6 +61,7 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
     // 直达播放：导航到播放页，自动搜索最佳源并播放
     const params = new URLSearchParams();
     params.set('title', movie.title);
+    params.set('type', contentType); // 'movie' | 'tv' — 用于消歧义
     router.push(`/player?${params.toString()}`);
   };
 
@@ -78,7 +79,7 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
       <RankingCarousel contentType={contentType} />
 
       {/* Content Type Toggle (Capsule Liquid Glass - Fixed & Centered) */}
-      <div className="mb-10 flex justify-center">
+      <div className="mb-4 flex justify-center">
         <div className="content-type-toggle relative w-[28rem] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full grid grid-cols-3 backdrop-blur-2xl shadow-lg ring-1 ring-white/10 overflow-hidden">
           {/* Sliding Indicator - 三等分定位 */}
           <div
@@ -87,7 +88,7 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
               top: '4px',
               bottom: '4px',
               width: 'calc(33.333% - 4px)',
-              left: contentType === 'movie' ? '4px' : contentType === 'tv' ? 'calc(33.333%)' : 'calc(66.666%)',
+              left: contentType === 'movie' ? '4px' : 'calc(33.333%)',
               background: 'var(--accent-color)',
               boxShadow: '0 0 15px rgba(0,122,255,0.4)',
             }}
@@ -109,11 +110,9 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
           </button>
           <button
             onClick={() => {
-              setContentType('tv');
               setShowMidnightToast(true);
             }}
-            className={`relative z-10 py-2.5 text-sm font-bold transition-colors duration-300 cursor-pointer flex justify-center items-center ${contentType !== 'movie' && contentType !== 'tv' ? 'text-white' : 'text-[var(--text-color-secondary)] hover:text-[var(--text-color)]'
-              }`}
+            className="relative z-10 py-2.5 text-sm font-bold transition-colors duration-300 cursor-pointer flex justify-center items-center text-[var(--text-color-secondary)] hover:text-[var(--text-color)]"
           >
             午夜版
           </button>

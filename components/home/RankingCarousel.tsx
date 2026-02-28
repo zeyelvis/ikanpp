@@ -104,6 +104,8 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
     const handleMovieClick = (movie: any) => {
         const params = new URLSearchParams();
         params.set('title', movie.title);
+        params.set('type', contentType); // 'movie' | 'tv' — 用于消歧义
+        if (movie.year) params.set('year', movie.year);
         router.push(`/player?${params.toString()}`);
     };
 
@@ -122,7 +124,7 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
     if (!current) return null;
 
     return (
-        <div className="mb-6">
+        <div className="mb-3">
 
             {/* 幻灯片主体 */}
             <div
@@ -154,10 +156,10 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                             priority
                             unoptimized
                         />
-                        {/* 底部强渐变（确保文字可读） */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+                        {/* 底部强渐变（确保文字在任何海报颜色上可读） */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/10" />
                         {/* 顶部微渐变 */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent h-20" />
+                        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
                     </div>
 
                     {/* 底部叠加信息 */}
@@ -325,6 +327,22 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                                         )}
                                     </div>
                                 ) : null}
+
+                                {/* 无简介时：迷你排行榜填充空白 */}
+                                {!current.description && (!current.directors?.length && !current.actors?.length) && currentData.length > 1 && (
+                                    <div className="mt-2 max-w-md">
+                                        <p className="text-white/30 text-[10px] uppercase tracking-widest mb-2">排行榜</p>
+                                        <div className="flex flex-col gap-1.5">
+                                            {currentData.slice(0, 5).map((item, idx) => (
+                                                <div key={idx} className={`flex items-center gap-2 text-xs px-2 py-1 rounded ${idx === currentIndex ? 'bg-white/10 text-white' : 'text-white/40'}`}>
+                                                    <span className="w-4 text-right font-bold text-yellow-400/70">{idx + 1}</span>
+                                                    <span className="truncate flex-1">{item.title}</span>
+                                                    {item.rate && parseFloat(item.rate) > 0 && <span className="text-yellow-400/60 text-[10px]">★ {item.rate}</span>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* 播放按钮 */}
@@ -387,15 +405,15 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
                     </button>
                 </div>
 
-                {/* 底部分页点 + 缩略图 */}
-                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-6 flex items-center gap-1.5">
+                {/* 底部分页点（手机端增大点击区域） */}
+                <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-6 flex items-center gap-1 sm:gap-1.5">
                     {currentData.map((_, idx) => (
                         <button
                             key={idx}
                             onClick={(e) => { e.stopPropagation(); goTo(idx); }}
-                            className={`rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
-                                ? 'w-6 h-2 bg-white'
-                                : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                            className={`rounded-full transition-all duration-300 cursor-pointer p-1 ${idx === currentIndex
+                                ? 'w-7 h-3 sm:w-6 sm:h-2 bg-white'
+                                : 'w-3 h-3 sm:w-2 sm:h-2 bg-white/40 hover:bg-white/70'
                                 }`}
                             aria-label={`第 ${idx + 1} 项`}
                         />

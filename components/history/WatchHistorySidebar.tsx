@@ -107,7 +107,7 @@ export function WatchHistorySidebar({ isPremium = false }: { isPremium?: boolean
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed right-6 top-1/2 -translate-y-1/2 z-40 bg-[var(--glass-bg)] backdrop-blur-[8px] saturate-[120%] border border-[var(--glass-border)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-md)] p-3 hover:scale-105 transition-all duration-300 cursor-pointer ${showToggle ? 'opacity-60 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`fixed right-6 top-[45%] -translate-y-1/2 z-40 hidden sm:flex bg-[var(--glass-bg)] backdrop-blur-[8px] saturate-[120%] border border-[var(--glass-border)] rounded-[var(--radius-2xl)] shadow-[var(--shadow-md)] p-3 hover:scale-105 transition-all duration-300 cursor-pointer ${showToggle ? 'opacity-60 hover:opacity-100' : 'opacity-0 pointer-events-none'}`}
         aria-label="打开观看历史"
       >
         <Icons.History size={20} className="text-[var(--text-color)]" />

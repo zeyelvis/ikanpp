@@ -30,6 +30,9 @@ function PlayerContent() {
   const title = searchParams.get('title');
   const episodeParam = searchParams.get('episode');
   const groupedSourcesParam = searchParams.get('groupedSources');
+  // 消歧义参数：从首页传入的内容类型和年份
+  const expectedType = searchParams.get('type'); // 'movie' | 'tv' | null
+  const expectedYear = searchParams.get('year'); // e.g. '2025' | null
 
   // === Title-only mode: auto-search all sources and redirect to best match ===
   // Initial state: if we have title but no id/source, we're already in search mode
@@ -56,6 +59,25 @@ function PlayerContent() {
 
     const normalizedTitle = title.toLowerCase().trim();
     let redirected = false;
+
+    // 消歧义评分函数：根据 type_name / vod_year 匹配程度打分
+    const scoreMatch = (v: any): number => {
+      let score = 0;
+      if (expectedType) {
+        const typeName = (v.type_name || '').toLowerCase();
+        const isMovie = typeName.includes('电影') || typeName.includes('movie');
+        const isTv = typeName.includes('连续剧') || typeName.includes('电视') || typeName.includes('tv') || typeName.includes('动漫');
+        if (expectedType === 'movie' && isMovie) score += 10;
+        if (expectedType === 'tv' && isTv) score += 10;
+        // 惩罚类型不匹配
+        if (expectedType === 'movie' && isTv) score -= 5;
+        if (expectedType === 'tv' && isMovie) score -= 5;
+      }
+      if (expectedYear && v.vod_year) {
+        if (String(v.vod_year) === String(expectedYear)) score += 5;
+      }
+      return score;
+    };
 
     (async () => {
       try {
@@ -92,13 +114,27 @@ function PlayerContent() {
             try {
               const data = JSON.parse(line.slice(6));
               if (data.type === 'videos' && data.videos && data.videos.length > 0) {
-                // Priority: exact match > partial match > first result
-                const match = data.videos.find((v: any) =>
+                // 1. 精确匹配同名结果
+                const exactMatches = data.videos.filter((v: any) =>
                   v.vod_name?.toLowerCase().trim() === normalizedTitle
-                ) || data.videos.find((v: any) =>
-                  v.vod_name?.toLowerCase().trim().includes(normalizedTitle) ||
-                  normalizedTitle.includes(v.vod_name?.toLowerCase().trim())
-                ) || data.videos[0]; // 兜底：直接用第一个搜索结果
+                );
+                // 2. 部分匹配
+                const partialMatches = exactMatches.length === 0
+                  ? data.videos.filter((v: any) =>
+                    v.vod_name?.toLowerCase().trim().includes(normalizedTitle) ||
+                    normalizedTitle.includes(v.vod_name?.toLowerCase().trim())
+                  )
+                  : [];
+
+                // 3. 选择候选列表，按消歧义评分排序
+                let candidates = exactMatches.length > 0 ? exactMatches : partialMatches;
+                if (candidates.length === 0) candidates = [data.videos[0]]; // 兜底
+
+                if (expectedType || expectedYear) {
+                  candidates.sort((a: any, b: any) => scoreMatch(b) - scoreMatch(a));
+                }
+
+                const match = candidates[0];
 
                 if (match && !cancelled) {
                   foundSources.push({
@@ -143,7 +179,7 @@ function PlayerContent() {
     })();
 
     return () => { cancelled = true; };
-  }, [videoId, source, title, isPremium, router]);
+  }, [videoId, source, title, isPremium, router, expectedType, expectedYear]);
 
   // Track settings - use mode-specific store
   const modeStore = isPremium ? premiumModeSettingsStore : settingsStore;

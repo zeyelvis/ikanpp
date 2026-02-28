@@ -11,6 +11,7 @@ import { SearchResults } from '@/components/home/SearchResults';
 import { useHomePage } from '@/lib/hooks/useHomePage';
 import { useLatencyPing } from '@/lib/hooks/useLatencyPing';
 import { AppDownloadBanner } from '@/components/home/AppDownloadBanner';
+import { Footer } from '@/components/layout/Footer';
 
 function HomePage() {
   const {
@@ -90,6 +91,9 @@ function HomePage() {
 
       {/* Watch History Sidebar - Right */}
       <WatchHistorySidebar />
+
+      {/* Footer */}
+      <Footer />
 
       {/* App Download Banner */}
       <AppDownloadBanner />
