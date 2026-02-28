@@ -1,7 +1,6 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { Icons } from '@/components/ui/Icon';
 import { siteConfig } from '@/lib/config/site-config';
@@ -27,14 +26,14 @@ export function PlayerNavbar({ isPremium }: { isPremium?: boolean }) {
                                 className="object-contain"
                             />
                         </button>
-                        <Button
-                            variant="secondary"
+                        <button
                             onClick={() => router.back()}
-                            className="flex items-center gap-2"
+                            className="w-10 h-10 flex items-center justify-center rounded-[var(--radius-full)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                            aria-label="返回"
+                            title="返回"
                         >
                             <Icons.ChevronLeft size={20} />
-                            <span className="hidden sm:inline">返回</span>
-                        </Button>
+                        </button>
                     </div>
                     <div className="flex items-center gap-3">
                         <Link

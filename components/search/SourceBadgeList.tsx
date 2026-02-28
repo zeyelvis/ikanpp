@@ -30,7 +30,7 @@ export function SourceBadgeList({ sources, selectedSources, onToggleSource }: So
   const [isExpanded, setIsExpanded] = useState(() => {
     if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem(EXPAND_KEY);
-    return saved !== 'false'; // default to expanded
+    return saved === 'true'; // 默认折叠
   });
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const [hasOverflow, setHasOverflow] = useState(false);

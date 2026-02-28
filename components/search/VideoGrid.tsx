@@ -69,7 +69,50 @@ export const VideoGrid = memo(function VideoGrid({
     return () => unsubscribe();
   }, [pathname, searchParams, videos.length]);
 
-  if (videos.length === 0) {
+  // 搜索结果去重：同名同年份的视频只保留最优的一个
+  const deduplicatedVideos = useMemo(() => {
+    if (displayMode === 'grouped') return videos;
+
+    const groups = new Map<string, Video[]>();
+    for (const video of videos) {
+      // 标准化名称：去掉括号里的年份后缀，统一大小写
+      const normalizedName = video.vod_name
+        .toLowerCase()
+        .trim()
+        .replace(/\s*[\(（]\d{4}[\)）]\s*$/, '')  // 去掉 (2026) 或 （2026）
+        .replace(/\d{4}$/, '');                    // 去掉末尾年份如 "除恶2026"
+
+      const year = video.vod_year || '';
+      const key = `${normalizedName}__${year}`;
+
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(video);
+    }
+
+    return Array.from(groups.values()).map(group => {
+      if (group.length === 1) return group[0];
+
+      // 保留最优的：优先延迟最低的
+      const sorted = [...group].sort((a, b) => {
+        if (a.latency === undefined) return 1;
+        if (b.latency === undefined) return -1;
+        return a.latency - b.latency;
+      });
+
+      const best = { ...sorted[0] };
+      // 在备注中标注合并了多少个来源
+      if (group.length > 1) {
+        const sourceCount = group.length;
+        const existingRemarks = best.vod_remarks || '';
+        best.vod_remarks = existingRemarks
+          ? `${existingRemarks} · ${sourceCount}个来源`
+          : `${sourceCount}个来源`;
+      }
+      return best;
+    });
+  }, [videos, displayMode]);
+
+  if (deduplicatedVideos.length === 0) {
     return null;
   }
 
@@ -79,7 +122,7 @@ export const VideoGrid = memo(function VideoGrid({
 
     const groups = new Map<string, Video[]>();
 
-    videos.forEach(video => {
+    deduplicatedVideos.forEach(video => {
       const name = video.vod_name.toLowerCase().trim();
       if (!groups.has(name)) {
         groups.set(name, []);
@@ -101,7 +144,7 @@ export const VideoGrid = memo(function VideoGrid({
         name: sorted[0].vod_name,
       };
     });
-  }, [videos, displayMode]);
+  }, [deduplicatedVideos, displayMode]);
 
   // Callback ref for the load more trigger
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
@@ -136,7 +179,7 @@ export const VideoGrid = memo(function VideoGrid({
   const videoItems = useMemo(() => {
     if (displayMode === 'grouped') return [];
 
-    return videos.map((video, index) => {
+    return deduplicatedVideos.map((video, index) => {
       const params: Record<string, string> = {
         id: String(video.vod_id),
         source: video.source,
@@ -153,7 +196,7 @@ export const VideoGrid = memo(function VideoGrid({
 
       return { video, videoUrl, cardId };
     });
-  }, [videos, displayMode, isPremium]);
+  }, [deduplicatedVideos, displayMode, isPremium]);
 
   // Grouped mode items
   const groupItems = useMemo(() => {
