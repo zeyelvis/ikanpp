@@ -24,7 +24,9 @@ async function handleTypesRequest(sourceList: any[]) {
         const results = await Promise.allSettled(
             enabledSources.map(async (source: any) => {
                 try {
-                    const url = new URL(source.baseUrl);
+                    const base = source.baseUrl.replace(/\/$/, '');
+                    const path = source.searchPath || source.detailPath || '';
+                    const url = new URL(base + path);
                     url.searchParams.set('ac', 'list');
 
                     const controller = new AbortController();

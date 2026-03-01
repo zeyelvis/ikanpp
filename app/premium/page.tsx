@@ -23,7 +23,7 @@ function PremiumHomePage() {
     } = usePremiumHomePage();
 
     return (
-        <div className="min-h-screen bg-black">
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-color)', backgroundImage: 'var(--bg-image)' }}>
             {/* Glass Navbar */}
             <Navbar onReset={handleReset} isPremiumMode={true} />
 
@@ -79,7 +79,7 @@ function PremiumHomePage() {
 export default function PremiumPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-black">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-color)' }}>
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-[var(--accent-color)] border-t-transparent"></div>
             </div>
         }>

@@ -14,78 +14,13 @@ export function usePremiumTagManager() {
 
     // Fetch tags from API
     useEffect(() => {
-        const fetchTags = async () => {
-            try {
-                setLoading(true);
-                // We need to send the enabled sources to the API
-                // Dynamically import settingsStore to avoid initialization issues
-                const { settingsStore } = await import('@/lib/store/settings-store');
-                const settings = settingsStore.getSettings();
-                const enabledSources = settings.premiumSources.filter(s => s.enabled);
-
-                const response = await fetch('/api/premium/types', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        sources: enabledSources
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.tags && Array.isArray(data.tags)) {
-                    // Load saved order from local storage
-                    const savedTagsJson = localStorage.getItem(PREMIUM_STORAGE_KEY);
-                    if (savedTagsJson) {
-                        try {
-                            const savedTags = JSON.parse(savedTagsJson);
-                            // Merge API tags with saved order
-                            // 1. Keep saved tags that still exist in API
-                            // 2. Add new API tags to the end
-                            const apiTagMap = new Map<string, Tag>();
-                            if (Array.isArray(data.tags)) {
-                                data.tags.forEach((t: Tag) => apiTagMap.set(t.id, t));
-                            }
-
-                            const mergedTags: Tag[] = [];
-                            const processedIds = new Set<string>();
-
-                            // Process saved tags
-                            if (Array.isArray(savedTags)) {
-                                savedTags.forEach((savedTag: Tag) => {
-                                    if (apiTagMap.has(savedTag.id)) {
-                                        mergedTags.push(apiTagMap.get(savedTag.id)!);
-                                        processedIds.add(savedTag.id);
-                                    }
-                                });
-                            }
-
-                            // Add remaining API tags
-                            data.tags.forEach((tag: Tag) => {
-                                if (!processedIds.has(tag.id)) {
-                                    mergedTags.push(tag);
-                                }
-                            });
-
-                            setTags(mergedTags);
-                        } catch (e) {
-                            console.error('Failed to parse saved tags', e);
-                            setTags(data.tags);
-                        }
-                    } else {
-                        setTags(data.tags);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to fetch premium tags:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchTags();
+        // 测试模式：跳过 API 获取，直接使用静态标签
+        const staticTags: Tag[] = [
+            { id: 'recommend', label: '今日推荐', value: '' },
+            { id: 'wanghong', label: '网红主播', value: '' },
+        ];
+        setTags(staticTags);
+        setLoading(false);
     }, []);
 
     // Save tags to local storage whenever they change
@@ -96,8 +31,17 @@ export function usePremiumTagManager() {
     }, [tags, loading]);
 
     const handleAddTag = () => {
-        // Custom tag adding is disabled for dynamic tags mode as we fetch all available tags
-        // But we keep the function signature for compatibility
+        if (!newTagInput.trim()) return;
+        const newTag: Tag = {
+            id: `custom_${Date.now()}`,
+            label: newTagInput.trim(),
+            value: newTagInput.trim(),
+        };
+        const newTags = [...tags, newTag];
+        setTags(newTags);
+        localStorage.setItem(PREMIUM_STORAGE_KEY, JSON.stringify(newTags));
+        setNewTagInput('');
+        setJustAddedTag(true);
     };
 
     const handleDeleteTag = (tagId: string) => {
