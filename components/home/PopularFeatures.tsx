@@ -129,7 +129,7 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           {/* 遮罩 */}
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/70"
             onClick={() => setShowVipPrompt(false)}
           />
           {/* 弹窗内容 */}

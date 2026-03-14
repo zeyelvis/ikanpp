@@ -143,7 +143,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             {/* 背景遮罩 */}
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="fixed inset-0 bg-black/70" onClick={onClose} />
 
             {/* 弹窗主体 - 左右分栏 */}
             <div className="relative w-full max-w-[820px] flex rounded-2xl overflow-hidden shadow-2xl"
@@ -210,7 +210,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                 </div>
 
                 {/* ===== 右侧表单区 ===== */}
-                <div className="flex-1 bg-[#1a1a2e] flex flex-col overflow-y-auto" style={{ maxHeight: '90vh' }}>
+                <div className="flex-1 bg-[#1a1a2e] flex flex-col overflow-y-auto" style={{ maxHeight: '90vh', willChange: 'transform' }}>
                     {/* 关闭按钮 */}
                     <button
                         onClick={onClose}
@@ -267,6 +267,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-emerald-400/50 focus:bg-white/8 transition-all"
                                     autoComplete="email"
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
                                 />
                             </div>
 
@@ -280,6 +283,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-11 pr-11 py-3.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-emerald-400/50 focus:bg-white/8 transition-all"
                                     autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
                                 />
                                 <button
                                     type="button"
@@ -301,6 +307,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-emerald-400/50 focus:bg-white/8 transition-all"
                                         autoComplete="new-password"
+                                        autoCorrect="off"
+                                        autoCapitalize="off"
+                                        spellCheck={false}
                                     />
                                 </div>
                             )}

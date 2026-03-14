@@ -137,7 +137,13 @@ export const clearAllCache = () => cacheManager.clearAllCache();
 
 if (typeof window !== 'undefined') {
     cacheManager.initialize().then(() => {
-        setInterval(() => cacheManager.checkAndCleanup(), 5 * 60 * 1000);
+        // 启动时延迟清理一次
         setTimeout(() => cacheManager.checkAndCleanup(), 10000);
+        // 页面重新可见时清理，替代永久 setInterval，避免内存泄漏
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                cacheManager.checkAndCleanup();
+            }
+        });
     });
 }

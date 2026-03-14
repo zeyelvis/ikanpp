@@ -108,7 +108,7 @@ export function ShareButton({ title, size = 20 }: ShareButtonProps) {
         <>
           {/* 遮罩层 */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-black/60 z-[100]"
             onClick={() => setShowPanel(false)}
           />
           {/* 面板 */}

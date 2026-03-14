@@ -30,7 +30,7 @@ export function ExportModal({ isOpen, onClose, onExport }: ExportModalProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-[9998] bg-black/30 backdrop-blur-md transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-[9998] bg-black/50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         onClick={onClose}
       />
