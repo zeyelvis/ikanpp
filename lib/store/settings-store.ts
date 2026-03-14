@@ -310,4 +310,55 @@ export const settingsStore = {
       }
     }
   },
+
+  /**
+   * 从 Supabase 拉取全局视频源，合并到本地 localStorage
+   * - 全局源的 ID 存在于本地 → 更新为全局版本（管理员更改优先）
+   * - 全局源的 ID 不存在于本地 → 添加
+   * - 本地有但全局没有的源 → 保留（用户自定义源）
+   */
+  async syncGlobalSources(): Promise<boolean> {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      const { getGlobalSources, getGlobalPremiumSources } = await import('@/lib/supabase/global-config');
+
+      const [globalSources, globalPremiumSources] = await Promise.all([
+        getGlobalSources(),
+        getGlobalPremiumSources(),
+      ]);
+
+      if (!globalSources && !globalPremiumSources) return false;
+
+      const current = this.getSettings();
+      let changed = false;
+
+      // 合并普通源
+      if (globalSources && Array.isArray(globalSources) && globalSources.length > 0) {
+        const globalIds = new Set(globalSources.map(s => s.id));
+        // 全局源 + 用户自定义源（不在全局中的）
+        const userCustomSources = current.sources.filter(s => !globalIds.has(s.id) && !getDefaultSources().some(ds => ds.id === s.id));
+        current.sources = [...globalSources, ...userCustomSources];
+        changed = true;
+      }
+
+      // 合并 Premium 源
+      if (globalPremiumSources && Array.isArray(globalPremiumSources) && globalPremiumSources.length > 0) {
+        const globalPremiumIds = new Set(globalPremiumSources.map(s => s.id));
+        const userCustomPremium = current.premiumSources.filter(s => !globalPremiumIds.has(s.id) && !getDefaultPremiumSources().some(ds => ds.id === s.id));
+        current.premiumSources = [...globalPremiumSources, ...userCustomPremium];
+        changed = true;
+      }
+
+      if (changed) {
+        this.saveSettings(current);
+        console.log('✅ 全局视频源已同步');
+      }
+
+      return changed;
+    } catch (err) {
+      console.warn('全局配置同步失败:', err);
+      return false;
+    }
+  },
 };

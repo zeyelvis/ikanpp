@@ -9,11 +9,15 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { TagManager } from './TagManager';
 import { MovieGrid } from './MovieGrid';
 import { useTagManager } from './hooks/useTagManager';
 import { usePopularMovies } from './hooks/usePopularMovies';
 import { HeroSlideshow } from './TmdbSlideshow';
+import { useUserStore } from '@/lib/store/user-store';
+import { VipPrompt } from '@/components/premium/VipPrompt';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 interface PopularFeaturesProps {
   onSearch?: (query: string) => void;
@@ -21,15 +25,18 @@ interface PopularFeaturesProps {
 
 export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
   const router = useRouter();
-  const [showMidnightToast, setShowMidnightToast] = useState(false);
+  const { user } = useUserStore();
+  const [showVipPrompt, setShowVipPrompt] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
-  // 午夜版 toast 自动消失
-  useEffect(() => {
-    if (showMidnightToast) {
-      const timer = setTimeout(() => setShowMidnightToast(false), 3000);
-      return () => clearTimeout(timer);
+  // 点击午夜版 Tab
+  const handleMidnightClick = () => {
+    if (user?.isVip) {
+      router.push('/premium');
+    } else {
+      setShowVipPrompt(true);
     }
-  }, [showMidnightToast]);
+  };
   const {
     tags,
     selectedTag,
@@ -109,9 +116,7 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
             电视剧
           </button>
           <button
-            onClick={() => {
-              setShowMidnightToast(true);
-            }}
+            onClick={handleMidnightClick}
             className="relative z-10 py-2.5 text-sm font-bold transition-colors duration-300 cursor-pointer flex justify-center items-center text-[var(--text-color-secondary)] hover:text-[var(--text-color)]"
           >
             午夜版
@@ -119,23 +124,32 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
         </div>
       </div>
 
-      {/* 午夜版提示 Toast */}
-      {showMidnightToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in">
-          <div className="px-6 py-3 bg-[#1a1a2e] text-white rounded-2xl shadow-2xl border border-purple-500/30 flex items-center gap-3 backdrop-blur-xl">
-            <span className="text-xl">🔮</span>
-            <div>
-              <p className="text-sm font-semibold">午夜版功能开发中</p>
-              <p className="text-xs text-white/60">敬请期待，精彩内容即将上线</p>
-            </div>
-            <button
-              onClick={() => setShowMidnightToast(false)}
-              className="ml-2 text-white/40 hover:text-white/80 transition-colors cursor-pointer"
-            >
-              ✕
-            </button>
+      {/* VIP 开通引导弹窗 */}
+      {showVipPrompt && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* 遮罩 */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowVipPrompt(false)}
+          />
+          {/* 弹窗内容 */}
+          <div className="relative z-10 w-[90vw] max-w-lg rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
+            <VipPrompt
+              asModal
+              onClose={() => setShowVipPrompt(false)}
+              onOpenLogin={() => {
+                setShowVipPrompt(false);
+                setShowLogin(true);
+              }}
+            />
           </div>
-        </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 登录弹窗 */}
+      {showLogin && (
+        <AuthModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       )}
 
       <TagManager

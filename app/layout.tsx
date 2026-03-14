@@ -15,6 +15,8 @@ import { BackToTop } from "@/components/ui/BackToTop";
 import { ScrollPositionManager } from "@/components/ScrollPositionManager";
 import fs from 'fs';
 import path from 'path';
+import { Suspense } from 'react';
+import { ReferralCapture } from '@/components/auth/ReferralCapture';
 
 // Server Component specifically for reading env/file (async for best practices)
 async function AdKeywordsWrapper() {
@@ -169,6 +171,7 @@ export default function RootLayout({
             <TVNavigationInitializer />
             <PasswordGate hasAuth={!!(process.env.ADMIN_PASSWORD || process.env.ACCOUNTS || process.env.ACCESS_PASSWORD)}>
               <AdKeywordsWrapper />
+              <Suspense><ReferralCapture /></Suspense>
               {children}
               <BackToTop />
               <ScrollPositionManager />

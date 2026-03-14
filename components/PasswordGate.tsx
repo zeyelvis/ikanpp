@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getSession, setSession } from '@/lib/store/auth-store';
+import { getSession, setSession, setAuthConfigured } from '@/lib/store/auth-store';
 import { useSubscriptionSync } from '@/lib/hooks/useSubscriptionSync';
 import { settingsStore } from '@/lib/store/settings-store';
 import { Lock } from 'lucide-react';
@@ -42,6 +42,7 @@ export function PasswordGate({ children, hasAuth: initialHasAuth }: { children: 
 
                 if (mounted) {
                     setHasAuth(data.hasAuth);
+                    setAuthConfigured(data.hasAuth); // 通知 auth-store 旧认证系统是否启用
                     setPersistSession(data.persistSession);
 
                     // Sync subscriptions

@@ -49,6 +49,23 @@ export function usePremiumSettingsPage() {
             ...currentSettings,
             premiumSources: newSources,
         });
+        // 管理员修改源时同步到全局配置
+        syncPremiumSourcesToGlobal(newSources);
+    };
+
+    // 异步同步到 Supabase（管理员才触发）
+    const syncPremiumSourcesToGlobal = async (newSources: VideoSource[]) => {
+        try {
+            const { useUserStore } = await import('@/lib/store/user-store');
+            const user = useUserStore.getState().user;
+            if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+                const { setGlobalPremiumSources } = await import('@/lib/supabase/global-config');
+                await setGlobalPremiumSources(newSources, user.id);
+                console.log('✅ Premium 视频源已同步到全局');
+            }
+        } catch (err) {
+            console.warn('同步全局 Premium 配置失败:', err);
+        }
     };
 
     const handleAddSource = (source: VideoSource) => {

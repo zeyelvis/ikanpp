@@ -7,10 +7,12 @@ import { useRouter } from 'next/navigation';
 import { Icons } from '@/components/ui/Icon';
 import { siteConfig } from '@/lib/config/site-config';
 import { getSession, clearSession, hasPermission, type AuthSession } from '@/lib/store/auth-store';
-import { LogOut } from 'lucide-react';
+import { LogOut, User, Crown, Share2 } from 'lucide-react';
 import { SearchBox } from '@/components/search/SearchBox';
 import { Button } from '@/components/ui/Button';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { useUserStore } from '@/lib/store/user-store';
 
 interface NavbarProps {
     /** 导航模式：'home' 首页模式（搜索+完整功能），'player' 播放页模式（返回按钮+精简功能） */
@@ -34,14 +36,17 @@ export function Navbar({
     isSearching = false,
 }: NavbarProps) {
     const router = useRouter();
-    const settingsHref = isPremiumMode ? '/premium/settings' : '/settings';
+    const settingsHref = '/profile?tab=player';
     const homeHref = isPremiumMode ? '/premium' : '/';
     const [session, setSessionState] = useState<AuthSession | null>(null);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const [authModalOpen, setAuthModalOpen] = useState(false);
+    const { user: supabaseUser, initialize: initUser, logout: supabaseLogout } = useUserStore();
 
     useEffect(() => {
         setSessionState(getSession());
-    }, []);
+        initUser();
+    }, [initUser]);
 
     const handleLogout = () => {
         clearSession();
@@ -159,8 +164,46 @@ export function Navbar({
                                 </Link>
                             )}
 
-                            {/* User Info（仅首页桌面端） */}
-                            {!isPlayer && session && (
+                            {!isPlayer && supabaseUser && (
+                                <div className="hidden sm:flex items-center gap-2">
+                                    <Link
+                                        href="/profile"
+                                        className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full text-xs hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                        title="个人中心"
+                                    >
+                                        <div className="w-5 h-5 rounded-full bg-[var(--accent-color)]/10 flex items-center justify-center text-[var(--accent-color)] font-bold text-[10px] border border-[var(--glass-border)]">
+                                            {supabaseUser.email.charAt(0).toUpperCase()}
+                                        </div>
+                                        <span className="text-[var(--text-color)] max-w-[80px] truncate">{supabaseUser.email.split('@')[0]}</span>
+                                        {supabaseUser.isVip && (
+                                            <span className="flex items-center gap-0.5 px-1 py-0.5 bg-amber-500/10 text-amber-500 rounded text-[10px] font-medium">
+                                                <Crown size={10} />
+                                                VIP
+                                            </span>
+                                        )}
+                                    </Link>
+                                    <Link
+                                        href="/profile?tab=referral"
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-amber-500 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all duration-200 cursor-pointer"
+                                        aria-label="邀请好友"
+                                        title="邀请好友赚 VIP"
+                                    >
+                                        <Share2 size={14} />
+                                    </Link>
+                                </div>
+                            )}
+                            {!isPlayer && !supabaseUser && (
+                                <button
+                                    onClick={() => setAuthModalOpen(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--accent-color)] text-white rounded-full text-xs font-medium hover:opacity-90 transition-all duration-200 cursor-pointer"
+                                >
+                                    <User size={14} />
+                                    登录
+                                </button>
+                            )}
+
+                            {/* 旧版 Auth 系统用户信息（仅首页桌面端） */}
+                            {!isPlayer && session && !supabaseUser && (
                                 <div className="hidden sm:flex items-center gap-2">
                                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full text-xs">
                                         <div className="w-5 h-5 rounded-full bg-[var(--accent-color)]/10 flex items-center justify-center text-[var(--accent-color)] font-bold text-[10px] border border-[var(--glass-border)]">
@@ -219,6 +262,9 @@ export function Navbar({
                     </div>
                 </div>
             </div>
-        </nav>
+
+            {/* 登录/注册弹窗 */}
+            <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+        </nav >
     );
 }

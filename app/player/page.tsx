@@ -13,6 +13,7 @@ import { useVideoPlayer } from '@/lib/hooks/useVideoPlayer';
 import { useHistory } from '@/lib/store/history-store';
 import { FavoritesSidebar } from '@/components/favorites/FavoritesSidebar';
 import { FavoriteButton } from '@/components/favorites/FavoriteButton';
+import { ShareButton } from '@/components/player/ShareButton';
 import { Navbar } from '@/components/layout/Navbar';
 import { settingsStore } from '@/lib/store/settings-store';
 import { premiumModeSettingsStore } from '@/lib/store/premium-mode-settings';
@@ -518,6 +519,9 @@ function PlayerContent() {
                   <span className="text-sm text-[var(--text-color-secondary)]">
                     收藏这个视频
                   </span>
+                  <div className="ml-auto">
+                    <ShareButton title={videoData.vod_name || title || ''} size={20} />
+                  </div>
                 </div>
               )}
             </div>

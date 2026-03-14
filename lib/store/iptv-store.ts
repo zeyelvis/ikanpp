@@ -58,9 +58,9 @@ export const useIPTVStore = create<IPTVStore>()(
     (set, get) => ({
       sources: [
         {
-          id: 'default-chinese-iptv',
-          name: '中国频道 (iptv-org)',
-          url: 'https://iptv-org.github.io/iptv/countries/cn.m3u',
+          id: 'default-ioptu-migu',
+          name: '咪咕直播 (自动更新)',
+          url: 'https://raw.githubusercontent.com/ioptu/IPTV.txt2m3u.player/main/migu.m3u',
           addedAt: 0,
         },
       ],
@@ -161,7 +161,7 @@ export const useIPTVStore = create<IPTVStore>()(
     }),
     {
       name: 'kvideo-iptv-store',
-      version: 10,
+      version: 11,
       migrate: (persistedState: any, version: number) => {
         // 唯一默认源：咪咕直播（每小时自动更新 token，103 频道）
         const defaultSource = {
