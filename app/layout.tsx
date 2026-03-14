@@ -6,15 +6,14 @@ import "./styles/tmdb-slideshow.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { TVProvider } from "@/lib/contexts/TVContext";
 import { TVNavigationInitializer } from "@/components/TVNavigationInitializer";
-import { Analytics } from "@vercel/analytics/react";
+
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PasswordGate } from "@/components/PasswordGate";
 import { siteConfig } from "@/lib/config/site-config";
 import { AdKeywordsInjector } from "@/components/AdKeywordsInjector";
 import { BackToTop } from "@/components/ui/BackToTop";
 import { ScrollPositionManager } from "@/components/ScrollPositionManager";
-import fs from 'fs';
-import path from 'path';
+
 import { Suspense } from 'react';
 import { ReferralCapture } from '@/components/auth/ReferralCapture';
 
@@ -23,32 +22,10 @@ async function AdKeywordsWrapper() {
   let keywords: string[] = [];
 
   try {
-    // 1. Try reading from file (Docker runtime support)
-    const keywordsFile = process.env.AD_KEYWORDS_FILE;
-    if (keywordsFile) {
-      // Resolve absolute path or relative to CWD
-      const filePath = path.isAbsolute(keywordsFile)
-        ? keywordsFile
-        : path.join(process.cwd(), keywordsFile);
-
-      try {
-        const content = await fs.promises.readFile(filePath, 'utf-8');
-        keywords = content.split(/[\n,]/).map((k: string) => k.trim()).filter((k: string) => k);
-        console.log(`[AdFilter] Loaded ${keywords.length} keywords from file: ${filePath}`);
-      } catch (fileError: unknown) {
-        // Handle file not found (ENOENT) gracefully
-        if ((fileError as NodeJS.ErrnoException).code !== 'ENOENT') {
-          console.warn('[AdFilter] Error reading keywords file:', fileError);
-        }
-      }
-    }
-
-    // 2. Fallback to Env var (Runtime or Build time)
-    if (keywords.length === 0) {
-      const envKeywords = process.env.AD_KEYWORDS || process.env.NEXT_PUBLIC_AD_KEYWORDS;
-      if (envKeywords) {
-        keywords = envKeywords.split(/[\n,]/).map((k: string) => k.trim()).filter((k: string) => k);
-      }
+    // 从环境变量读取广告关键词（兼容 Edge Runtime）
+    const envKeywords = process.env.AD_KEYWORDS || process.env.NEXT_PUBLIC_AD_KEYWORDS;
+    if (envKeywords) {
+      keywords = envKeywords.split(/[\n,]/).map((k: string) => k.trim()).filter((k: string) => k);
     }
   } catch (error) {
     console.warn('[AdFilter] Failed to load keywords:', error);
@@ -177,7 +154,7 @@ export default function RootLayout({
               <ScrollPositionManager />
             </PasswordGate>
           </TVProvider>
-          <Analytics />
+
           <ServiceWorkerRegister />
         </ThemeProvider>
 
