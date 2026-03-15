@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { useUserStore } from '@/lib/store/user-store';
+import { useSessionGuard } from '@/lib/hooks/useSessionGuard';
 
 interface NavbarProps {
     /** 导航模式：'home' 首页模式（搜索+完整功能），'player' 播放页模式（返回按钮+精简功能） */
@@ -41,7 +42,21 @@ export function Navbar({
     const [session, setSessionState] = useState<AuthSession | null>(null);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [kickedMessage, setKickedMessage] = useState('');
     const { user: supabaseUser, initialize: initUser, logout: supabaseLogout } = useUserStore();
+
+    // 多设备登录守卫
+    useSessionGuard();
+
+    // 监听被踢事件
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            setKickedMessage(detail?.message || '你的账号已在其他设备登录');
+        };
+        window.addEventListener('session-kicked', handler);
+        return () => window.removeEventListener('session-kicked', handler);
+    }, []);
 
     useEffect(() => {
         setSessionState(getSession());
@@ -265,6 +280,30 @@ export function Navbar({
 
             {/* 登录/注册弹窗 */}
             <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+
+            {/* 被踢出提示弹窗 */}
+            {kickedMessage && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70">
+                    <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-500/15 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                        </div>
+                        <h3 className="text-white font-bold text-lg mb-2">设备登录提醒</h3>
+                        <p className="text-white/60 text-sm mb-6 leading-relaxed">{kickedMessage}</p>
+                        <button
+                            onClick={() => { setKickedMessage(''); setAuthModalOpen(true); }}
+                            className="w-full py-3 rounded-xl text-sm font-semibold text-white cursor-pointer transition-all hover:brightness-110"
+                            style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                        >
+                            重新登录
+                        </button>
+                    </div>
+                </div>
+            )}
         </nav >
     );
 }
