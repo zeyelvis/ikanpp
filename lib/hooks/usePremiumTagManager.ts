@@ -12,14 +12,33 @@ export function usePremiumTagManager() {
     const [justAddedTag, setJustAddedTag] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Fetch tags from API
+    // Fetch tags: 优先从 localStorage 恢复，否则使用默认标签
     useEffect(() => {
-        // 测试模式：跳过 API 获取，直接使用静态标签
-        const staticTags: Tag[] = [
+        const saved = localStorage.getItem(PREMIUM_STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setTags(parsed);
+                    setLoading(false);
+                    return;
+                }
+            } catch { /* 解析失败则使用默认 */ }
+        }
+
+        // 默认标签：value 为关键词，用于搜索；空值表示浏览所有源的最新内容
+        const defaultTags: Tag[] = [
             { id: 'recommend', label: '今日推荐', value: '' },
-            { id: 'wanghong', label: '网红主播', value: '' },
+            { id: 'guochan',   label: '国产',     value: '国产' },
+            { id: 'riben',     label: '日本',     value: '日本' },
+            { id: 'oumei',     label: '欧美',     value: '欧美' },
+            { id: 'hanguo',    label: '韩国',     value: '韩国' },
+            { id: 'dongman',   label: '动漫',     value: '动漫' },
+            { id: 'zhubo',     label: '主播',     value: '主播' },
+            { id: 'zipai',     label: '自拍',     value: '自拍' },
+            { id: 'yuanchuang', label: '原创',    value: '原创' },
         ];
-        setTags(staticTags);
+        setTags(defaultTags);
         setLoading(false);
     }, []);
 
@@ -56,21 +75,21 @@ export function usePremiumTagManager() {
         }
     };
 
-    const handleRestoreDefaults = async () => {
-        setLoading(true);
+    const handleRestoreDefaults = () => {
         localStorage.removeItem(PREMIUM_STORAGE_KEY);
-        try {
-            const response = await fetch('/api/premium/types');
-            const data = await response.json();
-            if (data.tags) {
-                setTags(data.tags);
-                setSelectedTag('recommend');
-            }
-        } catch (error) {
-            console.error('Failed to restore tags:', error);
-        } finally {
-            setLoading(false);
-        }
+        const defaultTags: Tag[] = [
+            { id: 'recommend', label: '今日推荐', value: '' },
+            { id: 'guochan',   label: '国产',     value: '国产' },
+            { id: 'riben',     label: '日本',     value: '日本' },
+            { id: 'oumei',     label: '欧美',     value: '欧美' },
+            { id: 'hanguo',    label: '韩国',     value: '韩国' },
+            { id: 'dongman',   label: '动漫',     value: '动漫' },
+            { id: 'zhubo',     label: '主播',     value: '主播' },
+            { id: 'zipai',     label: '自拍',     value: '自拍' },
+            { id: 'yuanchuang', label: '原创',    value: '原创' },
+        ];
+        setTags(defaultTags);
+        setSelectedTag('recommend');
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
