@@ -13,6 +13,7 @@ import { PasswordGate } from "@/components/PasswordGate";
 import { AdKeywordsInjector } from "@/components/AdKeywordsInjector";
 import { BackToTop } from "@/components/ui/BackToTop";
 import { ScrollPositionManager } from "@/components/ScrollPositionManager";
+import { Footer } from "@/components/layout/Footer";
 
 import { Suspense } from 'react';
 import { ReferralCapture } from '@/components/auth/ReferralCapture';
@@ -150,6 +151,7 @@ export default function RootLayout({
               <AdKeywordsWrapper />
               <Suspense><ReferralCapture /></Suspense>
               {children}
+              <Footer />
               <BackToTop />
               <ScrollPositionManager />
             </PasswordGate>

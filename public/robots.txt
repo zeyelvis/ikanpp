@@ -3,5 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /settings
 Disallow: /player
+Disallow: /premium
+Disallow: /profile
 
 Sitemap: https://www.theone58.com/sitemap.xml

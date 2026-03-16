@@ -588,7 +588,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                                 {agreed && <span className="text-[8px] text-white font-bold">✓</span>}
                             </button>
                             <span className="text-xs text-white/30">
-                                同意《<span className="text-white/50 hover:text-emerald-400 cursor-pointer">用户协议</span>》和《<span className="text-white/50 hover:text-emerald-400 cursor-pointer">隐私条款</span>》
+                                同意《<a href="/terms" target="_blank" className="text-white/50 hover:text-emerald-400 transition-colors">用户协议</a>》和《<a href="/privacy" target="_blank" className="text-white/50 hover:text-emerald-400 transition-colors">隐私条款</a>》
                             </span>
                         </div>
 

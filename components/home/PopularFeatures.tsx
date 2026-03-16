@@ -59,9 +59,9 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
   const {
     movies,
     loading,
+    page,
     hasMore,
-    prefetchRef,
-    loadMoreRef,
+    goToPage,
   } = usePopularMovies(selectedTag, tags, contentType);
 
   const handleMovieClick = (movie: any) => {
@@ -172,10 +172,10 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
       <MovieGrid
         movies={movies}
         loading={loading}
+        page={page}
         hasMore={hasMore}
         onMovieClick={handleMovieClick}
-        prefetchRef={prefetchRef}
-        loadMoreRef={loadMoreRef}
+        onPageChange={goToPage}
       />
     </div>
   );
