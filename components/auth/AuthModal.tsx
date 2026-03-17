@@ -88,10 +88,10 @@ const PromoPanel = memo(function PromoPanel() {
                 style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.6) 0%, transparent 70%)' }} />
             <div className="p-8">
                 <div className="text-xl font-bold text-white tracking-wide" style={{
-                    background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+                    background: 'linear-gradient(135deg, #FFB020, #F59E0B, #E67E22)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                 }}>iKanPP</div>
-                <p className="text-xs text-white/40 mt-1">全网 VIP · 免费畅看 · 极速搜播</p>
+                <p className="text-xs text-white/40 mt-1">爱看片片 · 精彩无限</p>
             </div>
             <div className="px-8 flex-1 flex flex-col justify-center">
                 <div className="flex items-center gap-3 mb-6">
@@ -378,7 +378,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                     {/* 手机端标题 */}
                     <div className="md:hidden p-6 pb-0">
                         <div className="text-xl font-bold text-white tracking-wide" style={{
-                            background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+                            background: 'linear-gradient(135deg, #FFB020, #F59E0B, #E67E22)',
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                         }}>iKanPP</div>
                         <p className="text-xs text-white/40 mt-1">注册即送 30 天 VIP 体验</p>

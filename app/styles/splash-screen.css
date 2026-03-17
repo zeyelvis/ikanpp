@@ -283,7 +283,7 @@
     position: absolute;
     inset: -30px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(79, 120, 255, 0.4) 0%, rgba(79, 120, 255, 0.1) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(245, 158, 11, 0.1) 40%, transparent 70%);
     animation: splashAuraPulse 2.5s ease-in-out 0.5s infinite;
     z-index: -1;
 }
@@ -307,7 +307,7 @@
     width: 100px;
     height: 100px;
     border-radius: 24px;
-    filter: drop-shadow(0 4px 24px rgba(79, 120, 255, 0.6)) drop-shadow(0 0 60px rgba(99, 140, 255, 0.3));
+    filter: drop-shadow(0 4px 24px rgba(245, 158, 11, 0.6)) drop-shadow(0 0 60px rgba(255, 176, 32, 0.3));
     animation: splashLogoFloat 3.5s ease-in-out 1.3s infinite;
 }
 
@@ -338,7 +338,7 @@
 }
 
 .splash-brand-the {
-    background: linear-gradient(180deg, #4a7dff 0%, #2b5ddb 100%);
+    background: linear-gradient(180deg, #FFD700 0%, #FFB020 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -346,7 +346,7 @@
 }
 
 .splash-brand-one {
-    background: linear-gradient(180deg, #5b8cff 0%, #3b6de8 100%);
+    background: linear-gradient(180deg, #FFB020 0%, #F59E0B 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -354,7 +354,7 @@
 }
 
 .splash-brand-num {
-    background: linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%);
+    background: linear-gradient(180deg, #F59E0B 0%, #E67E22 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -401,7 +401,7 @@
 }
 
 .splash-tag-sep {
-    color: rgba(99, 140, 255, 0.5);
+    color: rgba(245, 158, 11, 0.5);
     font-size: 16px;
     opacity: 0;
     animation: splashTagPop 0.4s ease-out forwards;
@@ -461,7 +461,7 @@
 .splash-progress-bar {
     height: 100%;
     border-radius: 3px;
-    background: linear-gradient(90deg, #4a7dff, #818cf8, #a78bfa);
+    background: linear-gradient(90deg, #FFB020, #F59E0B, #E67E22);
     width: 0%;
     animation: splashProgressFill 2s ease-in-out 3s forwards;
 }
@@ -473,7 +473,7 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(167, 139, 250, 0.8) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.8) 0%, transparent 70%);
     filter: blur(3px);
     opacity: 0;
     animation: splashProgressGlow 2s ease-in-out 3s forwards;

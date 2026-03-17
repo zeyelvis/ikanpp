@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Icons } from '@/components/ui/Icon';
 import { siteConfig } from '@/lib/config/site-config';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import { getSession, clearSession, hasPermission, type AuthSession } from '@/lib/store/auth-store';
 import { LogOut, User, Crown, Share2 } from 'lucide-react';
 import { SearchBox } from '@/components/search/SearchBox';
@@ -96,15 +97,7 @@ export function Navbar({
                                 className="flex items-center justify-center hover:opacity-80 transition-opacity shrink-0 cursor-pointer"
                                 title={isPremiumMode ? "返回高级主页" : "返回首页"}
                             >
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 relative flex items-center justify-center shrink-0">
-                                    <Image
-                                        src="/icon.png"
-                                        alt={siteConfig.name}
-                                        width={40}
-                                        height={40}
-                                        className="object-contain rounded-lg"
-                                    />
-                                </div>
+                                <LogoIcon size={32} />
                             </button>
                         ) : (
                             <Link
@@ -113,24 +106,16 @@ export function Navbar({
                                 onClick={onReset}
                                 data-focusable
                             >
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 relative flex items-center justify-center shrink-0">
-                                    <Image
-                                        src="/icon.png"
-                                        alt={siteConfig.name}
-                                        width={40}
-                                        height={40}
-                                        className="object-contain rounded-lg"
-                                    />
-                                </div>
+                                <LogoIcon size={32} />
                                 <div className="hidden sm:block">
                                     <div className="flex flex-col min-w-0">
                                         <h1 className="text-lg font-bold truncate" style={{
-                                            background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+                                            background: 'linear-gradient(135deg, #FFB020, #F59E0B, #E67E22)',
                                             WebkitBackgroundClip: 'text',
                                             WebkitTextFillColor: 'transparent',
                                             letterSpacing: '0.02em',
                                         }}>iKanPP</h1>
-                                        <p className="text-[10px] text-[var(--text-color-secondary)] tracking-wider hidden lg:block">全网 VIP · 免费畅看 · 极速搜播</p>
+                                        <p className="text-[10px] text-[var(--text-color-secondary)] tracking-wider hidden lg:block">爱看片片 · 精彩无限</p>
                                     </div>
                                 </div>
                             </Link>

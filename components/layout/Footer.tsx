@@ -33,15 +33,15 @@ export function Footer() {
                                 {/* Logo 图标 */}
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center"
                                     style={{
-                                        background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
-                                        boxShadow: '0 0 20px rgba(96,165,250,0.25)',
+                                        background: 'linear-gradient(135deg, #FFB020, #E67E22)',
+                                        boxShadow: '0 0 20px rgba(245,158,11,0.25)',
                                     }}>
                                     <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M8 5v14l11-7z" />
                                     </svg>
                                 </div>
                                 <span className="text-xl font-bold tracking-tight" style={{
-                                    background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
+                                    background: 'linear-gradient(135deg, #FFB020, #F59E0B, #E67E22)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                 }}>iKanPP</span>

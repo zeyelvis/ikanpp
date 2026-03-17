@@ -1,9 +1,9 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { Icons } from '@/components/ui/Icon';
 import { siteConfig } from '@/lib/config/site-config';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 export function PlayerNavbar({ isPremium }: { isPremium?: boolean }) {
     const router = useRouter();
@@ -18,13 +18,7 @@ export function PlayerNavbar({ isPremium }: { isPremium?: boolean }) {
                             className="flex items-center justify-center hover:opacity-80 transition-opacity flex-shrink-0 cursor-pointer"
                             title={isPremium ? "返回高级主页" : "返回首页"}
                         >
-                            <Image
-                                src="/icon.png"
-                                alt={siteConfig.name}
-                                width={40}
-                                height={40}
-                                className="object-contain"
-                            />
+                            <LogoIcon size={28} />
                         </button>
                         <button
                             onClick={() => router.back()}

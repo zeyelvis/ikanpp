@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 const SPLASH_KEY = 'kvideo_splash_shown';
 
@@ -87,31 +87,21 @@ export function SplashScreen() {
             {/* Logo */}
             <div className="splash-logo-container">
                 <div className="splash-logo-aura" />
-                <Image
-                    src="/icon.png"
-                    alt="iKanPP"
-                    width={100}
-                    height={100}
-                    className="splash-logo"
-                    priority
-                />
+                <LogoIcon size={80} className="splash-logo" />
             </div>
 
             {/* 品牌名 — 大号渐变文字 */}
             <h1 className="splash-brand">
-                <span className="splash-brand-the">the</span>
-                <span className="splash-brand-one">one</span>
-                <span className="splash-brand-num">58</span>
-                <span className="splash-brand-dot">.com</span>
+                <span className="splash-brand-the">i</span>
+                <span className="splash-brand-one">Kan</span>
+                <span className="splash-brand-num">PP</span>
             </h1>
 
             {/* 标语 */}
             <p className="splash-tagline">
-                <span className="splash-tag-item">全网 VIP</span>
+                <span className="splash-tag-item">爱看片片</span>
                 <span className="splash-tag-sep">·</span>
-                <span className="splash-tag-item">免费畅看</span>
-                <span className="splash-tag-sep">·</span>
-                <span className="splash-tag-item">极速搜播</span>
+                <span className="splash-tag-item">精彩无限</span>
             </p>
 
             {/* 底部进度条 */}
