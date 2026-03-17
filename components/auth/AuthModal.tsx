@@ -90,7 +90,7 @@ const PromoPanel = memo(function PromoPanel() {
                 <div className="text-xl font-bold text-white tracking-wide" style={{
                     background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
                     WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                }}>theone58</div>
+                }}>iKanPP</div>
                 <p className="text-xs text-white/40 mt-1">全网 VIP · 免费畅看 · 极速搜播</p>
             </div>
             <div className="px-8 flex-1 flex flex-col justify-center">
@@ -380,7 +380,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
                         <div className="text-xl font-bold text-white tracking-wide" style={{
                             background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                        }}>theone58</div>
+                        }}>iKanPP</div>
                         <p className="text-xs text-white/40 mt-1">注册即送 30 天 VIP 体验</p>
                     </div>
 

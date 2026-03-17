@@ -129,7 +129,7 @@ export function Navbar({
                                             WebkitBackgroundClip: 'text',
                                             WebkitTextFillColor: 'transparent',
                                             letterSpacing: '0.02em',
-                                        }}>theone58</h1>
+                                        }}>iKanPP</h1>
                                         <p className="text-[10px] text-[var(--text-color-secondary)] tracking-wider hidden lg:block">全网 VIP · 免费畅看 · 极速搜播</p>
                                     </div>
                                 </div>

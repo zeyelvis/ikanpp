@@ -1,0 +1,317 @@
+/**
+ * 跨平台兼容性层 — 全局回退样式
+ * 
+ * 目标浏览器：
+ * - Samsung Tizen TV (Chromium 79-94)
+ * - LG webOS TV (Chromium 68-87)
+ * - Hisense VIDAA TV (Chromium 69-79)
+ * - iOS Safari 14+
+ * - Android WebView / Chrome 80+
+ * - Fire TV Silk Browser (Chromium 83-95)
+ * 
+ * 策略：先写回退值，再用 @supports 写现代值
+ * 浏览器会忽略不认识的 @supports 规则，只用回退值
+ */
+
+/* ====================================================
+   1. Flexbox gap 回退
+   LG webOS < Chromium 84 不支持 Flexbox gap
+   用 margin 模拟间距
+   ==================================================== */
+@supports not (gap: 1px) {
+    /* 水平排列的 flex 容器：子元素用 margin-left */
+    .flex > * + * {
+        margin-left: 0.5rem;
+    }
+
+    .flex.flex-col > * + * {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+
+    /* Grid gap 回退（Grid gap 支持更好，但以防万一） */
+    .grid {
+        margin: -0.25rem;
+    }
+    .grid > * {
+        margin: 0.25rem;
+    }
+}
+
+/* ====================================================
+   2. aspect-ratio 回退
+   Chromium < 88 不支持 aspect-ratio
+   用 padding-top 百分比技巧模拟
+   ==================================================== */
+@supports not (aspect-ratio: 1) {
+    /* 2:3 竖版海报 — 最常用 */
+    [class*="aspect-[2/3]"],
+    [class*="aspect-2/3"],
+    .aspect-poster {
+        position: relative;
+        height: 0;
+        padding-top: 150%; /* 3/2 = 1.5 = 150% */
+        overflow: hidden;
+    }
+    [class*="aspect-[2/3]"] > *,
+    [class*="aspect-2/3"] > *,
+    .aspect-poster > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    [class*="aspect-[2/3]"] > img,
+    [class*="aspect-2/3"] > img,
+    .aspect-poster > img {
+        object-fit: cover;
+    }
+
+    /* 21:9 宽屏幻灯片 */
+    [class*="aspect-[21/9]"],
+    [class*="aspect-21/9"] {
+        position: relative;
+        height: 0;
+        padding-top: 42.86%; /* 9/21 ≈ 42.86% */
+        overflow: hidden;
+    }
+    [class*="aspect-[21/9]"] > *,
+    [class*="aspect-21/9"] > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* 3:1 宽屏幻灯片（桌面/TV） */
+    [class*="aspect-[3/1]"],
+    [class*="aspect-3/1"] {
+        position: relative;
+        height: 0;
+        padding-top: 33.33%; /* 1/3 ≈ 33.33% */
+        overflow: hidden;
+    }
+    [class*="aspect-[3/1]"] > *,
+    [class*="aspect-3/1"] > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* 16:9 视频 */
+    [class*="aspect-video"],
+    [class*="aspect-[16/9]"],
+    [class*="aspect-16/9"] {
+        position: relative;
+        height: 0;
+        padding-top: 56.25%; /* 9/16 = 56.25% */
+        overflow: hidden;
+    }
+    [class*="aspect-video"] > *,
+    [class*="aspect-[16/9]"] > *,
+    [class*="aspect-16/9"] > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* 1:1 正方形 */
+    [class*="aspect-square"],
+    [class*="aspect-[1/1]"],
+    [class*="aspect-1/1"] {
+        position: relative;
+        height: 0;
+        padding-top: 100%;
+        overflow: hidden;
+    }
+    [class*="aspect-square"] > *,
+    [class*="aspect-[1/1]"] > *,
+    [class*="aspect-1/1"] > * {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+/* ====================================================
+   3. backdrop-filter 全局 -webkit- 前缀
+   iOS Safari 全版本需要 -webkit- 前缀
+   部分 Android WebView 也需要
+   ==================================================== */
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    /* Tailwind 的 backdrop-blur 类 */
+    [class*="backdrop-blur"] {
+        -webkit-backdrop-filter: var(--tw-backdrop-blur, blur(8px));
+        backdrop-filter: var(--tw-backdrop-blur, blur(8px));
+    }
+}
+
+/* 全局确保内联样式的 backdrop-filter 也有 -webkit 前缀 */
+[style*="backdrop-filter"] {
+    -webkit-backdrop-filter: inherit;
+}
+
+/* ====================================================
+   4. CSS Grid 回退
+   极旧浏览器 Grid 不完整时降级为 flexbox 布局
+   ==================================================== */
+@supports not (display: grid) {
+    .grid {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-wrap: wrap;
+        flex-wrap: wrap;
+    }
+    .grid > * {
+        -webkit-flex: 0 0 calc(50% - 1rem);
+        flex: 0 0 calc(50% - 1rem);
+        margin: 0.5rem;
+    }
+}
+
+/* ====================================================
+   5. Flexbox 前缀
+   Tizen TV 4.0 (2018) 需要 -webkit- flex 前缀
+   ==================================================== */
+.flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.flex-col {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+.flex-1 {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1 1 0%;
+    flex: 1 1 0%;
+}
+
+.items-center {
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+}
+
+.justify-center {
+    -webkit-box-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.justify-between {
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+}
+
+.flex-wrap {
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+}
+
+.shrink-0 {
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+/* ====================================================
+   6. transform 前缀
+   部分旧 Android WebView 需要
+   ==================================================== */
+[class*="translate"],
+[class*="scale"],
+[class*="rotate"] {
+    -webkit-transform: var(--tw-transform);
+}
+
+/* ====================================================
+   7. 安全区域（iPhone X+ 刘海屏 / 底部横条）
+   ==================================================== */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: constant(safe-area-inset-bottom, 0px); /* iOS 11.0-11.2 */
+}
+
+.pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: constant(safe-area-inset-top, 0px);
+}
+
+/* ====================================================
+   8. 滚动行为回退
+   ==================================================== */
+.overflow-y-auto,
+.overflow-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ====================================================
+   9. 文字溢出处理（兼容旧引擎）
+   ==================================================== */
+.line-clamp-1,
+.line-clamp-2,
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-1 {
+    -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+    -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+    -webkit-line-clamp: 3;
+}
+
+/* ====================================================
+   10. 渐变前缀
+   ==================================================== */
+[class*="bg-gradient"],
+[class*="bg-linear"] {
+    background-image: -webkit-linear-gradient(var(--tw-gradient-stops));
+}
+
+/* ====================================================
+   11. position: sticky 回退
+   ==================================================== */
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+}
+
+/* ====================================================
+   12. 禁用选择（长按不选中文字）
+   ==================================================== */
+button,
+a,
+[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* ====================================================
+   13. 触摸操作优化
+   ==================================================== */
+a, button, [role="button"], input, select, textarea {
+    touch-action: manipulation;
+}

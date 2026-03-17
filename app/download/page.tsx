@@ -87,7 +87,7 @@ export default function DownloadPage() {
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                 }}>
-                    theone58
+                    iKanPP
                 </div>
                 <p className="text-lg text-[var(--text-color-secondary)] max-w-[500px] leading-relaxed">
                     多源聚合视频平台 · 支持全平台
@@ -161,7 +161,7 @@ export default function DownloadPage() {
                     🌐 也可以直接在浏览器中使用
                 </p>
                 <p className="text-[var(--text-color-secondary)] text-sm">
-                    theone58 是渐进式 Web 应用（PWA），无需下载，
+                    iKanPP 是渐进式 Web 应用（PWA），无需下载，
                     <Link href="/" className="text-[var(--accent-color)] no-underline hover:underline">
                         打开网页版 →
                     </Link>
@@ -170,7 +170,7 @@ export default function DownloadPage() {
 
             {/* 底部 */}
             <footer className="mt-15 text-[var(--text-color-secondary)] text-xs opacity-50">
-                © 2026 theone58 · 多源聚合视频平台
+                © 2026 iKanPP · 多源聚合视频平台
             </footer>
         </div>
     );

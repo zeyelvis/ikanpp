@@ -18,7 +18,7 @@ export default function TermsOfService() {
                     <section>
                         <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--text-color)' }}>一、服务说明</h2>
                         <p className="opacity-70">
-                            theone58（以下简称"本站"）是一个影视内容聚合搜索平台，为用户提供便捷的在线影视搜索和播放引导服务。本站不存储任何视频或图片资源，所有内容均通过搜索和聚合第三方网站的公开资源提供。
+                            iKanPP（以下简称"本站"）是一个影视内容聚合搜索平台，为用户提供便捷的在线影视搜索和播放引导服务。本站不存储任何视频或图片资源，所有内容均通过搜索和聚合第三方网站的公开资源提供。
                         </p>
                     </section>
 

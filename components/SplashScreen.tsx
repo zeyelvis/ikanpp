@@ -89,7 +89,7 @@ export function SplashScreen() {
                 <div className="splash-logo-aura" />
                 <Image
                     src="/icon.png"
-                    alt="theone58"
+                    alt="iKanPP"
                     width={100}
                     height={100}
                     className="splash-logo"

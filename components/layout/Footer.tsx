@@ -44,10 +44,10 @@ export function Footer() {
                                     background: 'linear-gradient(135deg, #60a5fa, #a78bfa)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
-                                }}>theone58</span>
+                                }}>iKanPP</span>
                             </div>
                             <p className="text-[13px] leading-relaxed opacity-50" style={{ color: 'var(--text-color-secondary)' }}>
-                                全网影视一键搜索，海量片源极速聚合。<br />
+                                爱看片片，精彩无限。<br />
                                 提供便捷的在线观影体验，让好片触手可及。
                             </p>
                         </div>
@@ -129,7 +129,7 @@ export function Footer() {
                     {/* 底部版权栏 */}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-5">
                         <span className="text-[10px] opacity-25" style={{ color: 'var(--text-color-secondary)' }}>
-                            © {currentYear} theone58. All rights reserved.
+                            © {currentYear} iKanPP. All rights reserved.
                         </span>
                         <div className="flex items-center gap-3 text-[10px] opacity-25" style={{ color: 'var(--text-color-secondary)' }}>
                             <Link href="/terms" className="hover:opacity-100 transition-opacity">用户协议</Link>

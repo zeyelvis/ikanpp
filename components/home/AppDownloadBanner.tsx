@@ -5,11 +5,11 @@ import Link from 'next/link';
 
 type DetectedPlatform = 'ios' | 'android' | 'macos' | null;
 
-const DISMISS_KEY = 'theone58-download-dismissed';
+const DISMISS_KEY = 'iKanPP-download-dismissed';
 const DISMISS_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 天不再提示
 const SHOW_DELAY = 5000; // 延迟 5 秒显示
 const MIN_VISITS_TO_SHOW = 2; // 至少访问 2 次才显示
-const VISIT_COUNT_KEY = 'theone58-visit-count';
+const VISIT_COUNT_KEY = 'iKanPP-visit-count';
 
 function detectMobilePlatform(): DetectedPlatform {
     if (typeof window === 'undefined') return null;

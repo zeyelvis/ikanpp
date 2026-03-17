@@ -22,17 +22,22 @@ select,
 
 html {
     scroll-behavior: auto;
-    /* 防止 iOS Safari 下拉刷新后水平偏移 */
+    /* 防止水平偏移 — hidden 是回退，clip 是增强（不影响 sticky） */
+    overflow-x: hidden;
     overflow-x: clip;
 }
 
 body {
+    overflow-x: hidden;
     overflow-x: clip;
-    /* 仅允许垂直方向弹性回弹，阻止水平方向 */
+    /* 阻止水平弹性回弹 */
+    -ms-scroll-chaining: none;
     overscroll-behavior-x: none;
     /* 确保宽度不超过视口 */
     width: 100%;
-    max-width: 100vw;
+    /* 用 100% 替代 100vw，避免滚动条导致的宽度差异 */
+    max-width: 100%;
+    position: relative;
 }
 
 /* Focus Styles */
@@ -120,11 +125,13 @@ input:focus-visible {
 }
 
 /* Performance Optimizations */
-nav:where(.sticky, .fixed),
+nav.sticky,
+nav.fixed,
 .sticky,
 .fixed {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
 
@@ -144,6 +151,7 @@ nav:where(.sticky, .fixed),
 }
 
 img {
+    -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
 

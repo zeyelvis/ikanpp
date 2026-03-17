@@ -1,6 +1,6 @@
 {
-    "name": "theone58 - 视频聚合平台",
-    "short_name": "theone58",
+    "name": "iKanPP - 视频聚合平台",
+    "short_name": "iKanPP",
     "description": "多源视频聚合搜索和播放平台",
     "start_url": "/",
     "display": "standalone",
