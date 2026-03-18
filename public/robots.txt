@@ -6,4 +6,4 @@ Disallow: /player
 Disallow: /premium
 Disallow: /profile
 
-Sitemap: https://www.theone58.com/sitemap.xml
+Sitemap: https://www.ikanpp.com/sitemap.xml
