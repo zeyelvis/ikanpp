@@ -52,7 +52,14 @@ function getAccountList(): AccountInfo[] {
   return accounts;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // HIGH-2 修复：需要管理员密码才能查看账号列表
+  const authHeader = request.headers.get('authorization');
+  const token = authHeader?.replace('Bearer ', '');
+  if (!token || (token !== effectiveAdminPassword)) {
+    return NextResponse.json({ error: '未授权访问' }, { status: 401 });
+  }
+
   const accounts = getAccountList();
 
   return NextResponse.json({

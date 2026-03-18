@@ -5,9 +5,14 @@ export const runtime = 'edge';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const tag = searchParams.get('tag') || '热门';
-  const pageLimit = searchParams.get('page_limit') || '20';
-  const pageStart = searchParams.get('page_start') || '0';
-  const type = searchParams.get('type') || 'movie'; // movie or tv
+  const type = searchParams.get('type') || 'movie';
+
+  // MED-3 修复：参数类型和范围验证
+  if (!['movie', 'tv'].includes(type)) {
+    return NextResponse.json({ subjects: [], error: 'Invalid type' }, { status: 400 });
+  }
+  const pageLimit = Math.min(Math.max(parseInt(searchParams.get('page_limit') || '20', 10) || 20, 1), 50);
+  const pageStart = Math.max(parseInt(searchParams.get('page_start') || '0', 10) || 0, 0);
 
   try {
     const url = `https://movie.douban.com/j/search_subjects?type=${type}&tag=${encodeURIComponent(tag)}&sort=recommend&page_limit=${pageLimit}&page_start=${pageStart}`;

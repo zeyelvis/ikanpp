@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { isRateLimited, getClientIp } from '@/lib/utils/security';
 
 export const runtime = 'edge';
 
@@ -72,6 +73,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // HIGH-1 修复：速率限制 — 每 IP 每分钟最多 5 次登录尝试
+    const ip = getClientIp(request);
+    if (isRateLimited(`auth:${ip}`, 5, 60_000)) {
+      return NextResponse.json(
+        { valid: false, message: '登录尝试过于频繁，请稍后再试' },
+        { status: 429 }
+      );
+    }
+
     const { password } = await request.json();
 
     if (!password || typeof password !== 'string') {

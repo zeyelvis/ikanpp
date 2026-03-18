@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processM3u8Content } from '@/lib/utils/proxy-utils';
 import { fetchWithRetry } from '@/lib/utils/fetch-with-retry';
+import { isSafeExternalUrl } from '@/lib/utils/security';
 
 export const runtime = 'edge';
 
@@ -13,6 +14,11 @@ export async function GET(request: NextRequest) {
 
     if (!url) {
         return new NextResponse('Missing URL parameter', { status: 400 });
+    }
+
+    // SSRF 防护：禁止内网 IP 和非法协议
+    if (!isSafeExternalUrl(url)) {
+        return new NextResponse('URL not allowed', { status: 403 });
     }
 
     try {
@@ -103,8 +109,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse(
             JSON.stringify({
                 error: 'Proxy request failed',
-                message: error instanceof Error ? error.message : 'Unknown error',
-                url: url
+                message: 'Internal proxy error',
             }),
             {
                 status: 500,

@@ -1,11 +1,5 @@
-/**
- * IPTV Stream Proxy API Route
- * Proxies HLS manifests and media segments to avoid CORS issues.
- * For .m3u8/.m3u manifests, rewrites URLs to also route through this proxy.
- * Supports HLS, MPEG-TS, and other stream formats with automatic content detection.
- */
-
 import { NextRequest, NextResponse } from 'next/server';
+import { isSafeExternalUrl } from '@/lib/utils/security';
 
 export const runtime = 'edge';
 
@@ -97,6 +91,11 @@ export async function GET(request: NextRequest) {
 
   if (!url) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+  }
+
+  // SSRF 防护：禁止内网 IP 和非法协议
+  if (!isSafeExternalUrl(url)) {
+    return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
   }
 
   try {

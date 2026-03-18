@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isAllowedDoubanImageUrl } from '@/lib/utils/security';
 
 export const runtime = 'edge';
 
@@ -8,6 +9,11 @@ export async function GET(request: Request) {
 
     if (!imageUrl) {
         return NextResponse.json({ error: 'Missing image URL' }, { status: 400 });
+    }
+
+    // SSRF 防护：仅允许豆瓣图片域名
+    if (!isAllowedDoubanImageUrl(imageUrl)) {
+        return NextResponse.json({ error: 'URL not allowed' }, { status: 403 });
     }
 
     try {
