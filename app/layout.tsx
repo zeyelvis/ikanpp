@@ -52,8 +52,21 @@ export const metadata: Metadata = {
     default: 'iKanPP — 爱看片片 | 全网影视聚合搜索播放平台',
     template: `%s | iKanPP`,
   },
-  description: 'iKanPP（爱看片片）是一款多源视频聚合平台，支持全网影视资源一键搜索、多线路切换、极速播放。覆盖电影、电视剧、综艺、动漫等海量片源，为您提供流畅的在线观影体验。',
-  keywords: ['iKanPP', '爱看片片', 'ikanpp', '视频聚合', '在线观影', '免费电影', '电视剧', '综艺', '动漫', '多源搜索', '影视平台'],
+  description: 'iKanPP（爱看片片）— 影视聚合搜索引擎，多播放源聚合，一键搜索全网电影、电视剧、综艺、动漫资源。支持国产剧、美剧、韩剧、日剧、港剧，热播剧全集更新，高分电影推荐。2026 新片新剧尽在爱看片片。',
+  keywords: [
+    // 核心定位词
+    'iKanPP', '爱看片片', '影视聚合搜索', '影视搜索引擎', '影片搜索', '播放源聚合', '片源聚合', '影视资源索引', '影视内容聚合',
+    // 电影
+    '电影搜索', '院线电影', '高分电影', '新片推荐', '电影全集',
+    // 电视剧
+    '电视剧搜索', '电视剧全集', '热播剧', '国产剧', '美剧', '韩剧', '日剧', '港剧', '台剧',
+    // 综艺 + 动漫
+    '综艺搜索', '热播综艺', '动漫搜索', '国漫', '日漫', '新番',
+    // 长尾热词
+    '2026新剧', '2026新片', '本周热播', '高评分美剧', '热门剧集',
+    // 地域
+    '海外影视', '欧美电影', '日韩电视剧',
+  ],
   authors: [{ name: 'iKanPP' }],
   creator: 'iKanPP',
   icons: {
@@ -69,7 +82,7 @@ export const metadata: Metadata = {
     locale: 'zh_CN',
     url: SITE_URL,
     title: 'iKanPP — 爱看片片 | 全网影视聚合搜索播放平台',
-    description: 'iKanPP（爱看片片）是一款多源视频聚合平台，支持全网影视资源一键搜索、多线路切换、极速播放。覆盖电影、电视剧、综艺、动漫等海量片源，为您提供流畅的在线观影体验。',
+    description: 'iKanPP（爱看片片）— 影视聚合搜索引擎，多播放源聚合，一键搜索全网电影、电视剧、综艺、动漫。支持国产剧、美剧、韩剧、日剧、港剧，2026 新片新剧尽在爱看片片。',
     siteName: 'iKanPP',
     images: [
       {
@@ -83,7 +96,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'iKanPP — 爱看片片 | 全网影视聚合搜索播放平台',
-    description: 'iKanPP（爱看片片）多源视频聚合平台，支持全网影视资源一键搜索、多线路切换、极速播放。覆盖电影、电视剧、综艺、动漫等海量片源。',
+    description: 'iKanPP（爱看片片）— 影视聚合搜索引擎，多播放源聚合，搜遍全网电影电视剧综艺动漫，2026 热播剧新片推荐。',
     images: ['/og-image.png'],
   },
   robots: {
@@ -117,26 +130,45 @@ export default function RootLayout({
         {/* Theme Color (for browser address bar) */}
         <meta name="theme-color" content="#000000" />
         {/* Mobile viewport */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* JSON-LD 结构化数据 */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebSite',
-              name: 'iKanPP',
-              url: 'https://www.ikanpp.com',
-              description: '爱看片片 · 精彩无限 — 多源视频聚合搜索和播放平台',
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: {
-                  '@type': 'EntryPoint',
-                  urlTemplate: 'https://www.ikanpp.com/?q={search_term_string}',
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'iKanPP',
+                alternateName: '爱看片片',
+                url: 'https://www.ikanpp.com',
+                description: '影视聚合搜索引擎 — 多播放源聚合，搜遍全网电影、电视剧、综艺、动漫资源',
+                inLanguage: 'zh-CN',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: {
+                    '@type': 'EntryPoint',
+                    urlTemplate: 'https://www.ikanpp.com/?q={search_term_string}',
+                  },
+                  'query-input': 'required name=search_term_string',
                 },
-                'query-input': 'required name=search_term_string',
               },
-            }),
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'iKanPP',
+                alternateName: '爱看片片',
+                url: 'https://www.ikanpp.com',
+                logo: 'https://www.ikanpp.com/icon.png',
+                sameAs: [],
+                contactPoint: {
+                  '@type': 'ContactPoint',
+                  email: 'zeyelvis@icloud.com',
+                  contactType: 'customer service',
+                  availableLanguage: ['Chinese', 'English'],
+                },
+              },
+            ]),
           }}
         />
       </head>
