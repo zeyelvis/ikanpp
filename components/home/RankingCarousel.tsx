@@ -32,7 +32,7 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
     // 方案 3：active 影片变化时按需加载详情
     useEffect(() => {
         const active = currentData[activeIndex];
-        if (active && !active.description) {
+        if (active && active.description === undefined) {
             enrichMovie(active.id, contentType);
         }
     }, [activeIndex, currentData, contentType, enrichMovie]);
