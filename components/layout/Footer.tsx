@@ -61,6 +61,7 @@ export function Footer() {
                                 {[
                                     { label: '首页', href: '/' },
                                     { label: '关于我们', href: '/about' },
+                                    { label: '常见问题', href: '/faq' },
                                     { label: '客户端', href: '/download' },
                                     { label: '直播', href: '/iptv' },
                                     { label: '个人中心', href: '/profile' },

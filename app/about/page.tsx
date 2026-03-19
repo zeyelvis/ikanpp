@@ -4,9 +4,54 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 
+/* ── 结构化数据 ── */
+const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'iKanPP',
+    alternateName: '爱看片片',
+    url: 'https://www.ikanpp.com',
+    logo: 'https://www.ikanpp.com/icon.png',
+    description: '专为海外华人打造的免费高清影视聚合搜索平台，利用 AI 技术智能聚合全网播放源。',
+    foundingDate: '2025',
+    founder: {
+        '@type': 'Person',
+        name: '片片',
+        description: '海外留学生、独立开发者',
+    },
+    contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'zeyelvis@icloud.com',
+        contactType: 'customer service',
+        availableLanguage: ['Chinese', 'English'],
+    },
+    sameAs: [],
+};
+
+const aboutPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: '关于我们 — 爱看片片的故事',
+    description: '一个海外留学生的假期逆袭：用AI技术打造免费、丝滑、懂你的影视聚合搜索平台。',
+    url: 'https://www.ikanpp.com/about',
+    mainEntity: {
+        '@type': 'Organization',
+        name: 'iKanPP',
+        url: 'https://www.ikanpp.com',
+    },
+};
+
 export default function AboutPage() {
     return (
         <div className="min-h-screen" style={{ color: 'var(--text-color)' }}>
+            {/* JSON-LD 结构化数据 */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify([organizationSchema, aboutPageSchema]),
+                }}
+            />
+
             {/* 全局头部 */}
             <Navbar variant="home" />
 
