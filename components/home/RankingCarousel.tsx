@@ -12,7 +12,7 @@ interface RankingCarouselProps {
 
 export function RankingCarousel({ contentType }: RankingCarouselProps) {
     const router = useRouter();
-    const { movieRanking, tvRanking, loading } = useRankingData({ limit: 10 });
+    const { movieRanking, tvRanking, loading, fetchType, enrichMovie } = useRankingData({ limit: 10 });
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -20,13 +20,22 @@ export function RankingCarousel({ contentType }: RankingCarouselProps) {
 
     const currentData = contentType === 'movie' ? movieRanking : tvRanking;
 
-    // 切换 tab 时重置
+    // 切换 tab 时重置 + 触发 TV 懒加载
     useEffect(() => {
         setActiveIndex(0);
         if (scrollRef.current) {
             scrollRef.current.scrollLeft = 0;
         }
-    }, [contentType]);
+        fetchType(contentType);
+    }, [contentType, fetchType]);
+
+    // 方案 3：active 影片变化时按需加载详情
+    useEffect(() => {
+        const active = currentData[activeIndex];
+        if (active && !active.description) {
+            enrichMovie(active.id, contentType);
+        }
+    }, [activeIndex, currentData, contentType, enrichMovie]);
 
     // 更新滚动按钮状态
     const updateScrollButtons = useCallback(() => {

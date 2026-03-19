@@ -19,7 +19,7 @@ interface HeroSlideshowProps {
 
 export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
     const router = useRouter();
-    const { movieRanking, tvRanking, loading } = useRankingData({ limit: 10 });
+    const { movieRanking, tvRanking, loading, fetchType, enrichMovie } = useRankingData({ limit: 10 });
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -31,11 +31,13 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
 
     const currentData = contentType === 'movie' ? movieRanking : tvRanking;
 
-    // 切换 tab 重置
+    // 切换 tab 重置 + 触发 TV 懒加载
     useEffect(() => {
         setActiveIndex(0);
         if (scrollRef.current) scrollRef.current.scrollLeft = 0;
-    }, [contentType]);
+        // 方案 1：切换到 TV 时才触发加载
+        fetchType(contentType);
+    }, [contentType, fetchType]);
 
     // 批量获取 TMDB Backdrop
     useEffect(() => {
@@ -95,6 +97,14 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
         if (!el) return;
         el.scrollBy({ left: direction === 'left' ? -450 : 450, behavior: 'smooth' });
     };
+
+    // 方案 3：active 影片变化时按需加载详情
+    useEffect(() => {
+        const active = currentData[activeIndex];
+        if (active && !active.description) {
+            enrichMovie(active.id, contentType);
+        }
+    }, [activeIndex, currentData, contentType, enrichMovie]);
 
     // 键盘（TV 遥控器）
     const handleKeyDown = (e: React.KeyboardEvent) => {

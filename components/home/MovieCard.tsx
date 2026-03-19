@@ -20,9 +20,11 @@ interface DoubanMovie {
 interface MovieCardProps {
   movie: DoubanMovie;
   onMovieClick: (movie: DoubanMovie) => void;
+  /** 卡片在网格中的索引，前 6 张 eager 加载 */
+  index?: number;
 }
 
-export const MovieCard = memo(function MovieCard({ movie, onMovieClick }: MovieCardProps) {
+export const MovieCard = memo(function MovieCard({ movie, onMovieClick, index = 0 }: MovieCardProps) {
   const [imageError, setImageError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -60,7 +62,7 @@ export const MovieCard = memo(function MovieCard({ movie, onMovieClick }: MovieC
               fill
               className={`object-cover transition-transform duration-500 group-hover:scale-110 rounded-[var(--radius-2xl)] ${imageLoaded ? 'img-fade-in' : 'opacity-0'}`}
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-              loading="eager"
+              loading={index < 6 ? 'eager' : 'lazy'}
               unoptimized
               referrerPolicy="no-referrer"
               onLoad={() => setImageLoaded(true)}

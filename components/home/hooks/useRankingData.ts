@@ -8,7 +8,7 @@ interface RankingMovie {
     cover: string;
     rate: string;
     url: string;
-    // 详情字段（异步加载）
+    // 详情字段（按需加载）
     description?: string;
     directors?: string[];
     actors?: string[];
@@ -22,23 +22,28 @@ interface UseRankingDataOptions {
 }
 
 /**
- * 获取排行榜数据：电影、电视剧各取热门 Top N，按评分降序
- * 同时异步加载每部影片的简介信息
+ * 获取排行榜数据：按 contentType 懒加载，不再同时拉 movie + tv。
+ * Detail 信息按需加载（仅 active 项），不再批量请求。
  */
 export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
     const [movieRanking, setMovieRanking] = useState<RankingMovie[]>([]);
     const [tvRanking, setTvRanking] = useState<RankingMovie[]>([]);
     const [loading, setLoading] = useState(true);
-    const fetchedRef = useRef(false);
+    const movieFetchedRef = useRef(false);
+    const tvFetchedRef = useRef(false);
+    // 缓存已加载的详情，避免重复请求
+    const detailCacheRef = useRef<Map<string, Partial<RankingMovie>>>(new Map());
 
-    // 获取单个影片详情
-    const fetchDetail = async (movie: RankingMovie): Promise<RankingMovie> => {
+    // 获取单个影片详情（带缓存）
+    const fetchDetail = useCallback(async (movieId: string): Promise<Partial<RankingMovie> | null> => {
+        if (detailCacheRef.current.has(movieId)) {
+            return detailCacheRef.current.get(movieId)!;
+        }
         try {
-            const res = await fetch(`/api/douban/detail?id=${movie.id}`);
-            if (!res.ok) return movie;
+            const res = await fetch(`/api/douban/detail?id=${movieId}`);
+            if (!res.ok) return null;
             const detail = await res.json();
-            return {
-                ...movie,
+            const enriched = {
                 description: detail.description || '',
                 directors: detail.directors || [],
                 actors: detail.actors || [],
@@ -46,53 +51,71 @@ export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
                 types: detail.types || [],
                 region: detail.region || [],
             };
+            detailCacheRef.current.set(movieId, enriched);
+            return enriched;
         } catch {
-            return movie; // 详情获取失败也不影响基本展示
+            return null;
         }
-    };
+    }, []);
 
-    const fetchRanking = useCallback(async () => {
+    // 获取某个类型的排行榜
+    const fetchType = useCallback(async (type: 'movie' | 'tv') => {
+        const fetchedRef = type === 'movie' ? movieFetchedRef : tvFetchedRef;
         if (fetchedRef.current) return;
         fetchedRef.current = true;
+
         setLoading(true);
-
         try {
-            const [movieRes, tvRes] = await Promise.all([
-                fetch(`/api/douban/recommend?type=movie&tag=${encodeURIComponent('热门')}&page_limit=${limit}&page_start=0`),
-                fetch(`/api/douban/recommend?type=tv&tag=${encodeURIComponent('热门')}&page_limit=${limit}&page_start=0`),
-            ]);
-
-            const [movieData, tvData] = await Promise.all([
-                movieRes.ok ? movieRes.json() : { subjects: [] },
-                tvRes.ok ? tvRes.json() : { subjects: [] },
-            ]);
-
+            const res = await fetch(
+                `/api/douban/recommend?type=${type}&tag=${encodeURIComponent('热门')}&page_limit=${limit}&page_start=0`
+            );
+            const data = res.ok ? await res.json() : { subjects: [] };
             const sortByRate = (a: RankingMovie, b: RankingMovie) =>
                 parseFloat(b.rate || '0') - parseFloat(a.rate || '0');
+            const sorted = (data.subjects || []).sort(sortByRate).slice(0, limit);
 
-            const movies = (movieData.subjects || []).sort(sortByRate).slice(0, limit);
-            const tvs = (tvData.subjects || []).sort(sortByRate).slice(0, limit);
-
-            // 先展示基本数据（无描述）
-            setMovieRanking(movies);
-            setTvRanking(tvs);
-            setLoading(false);
-
-            // 后台异步加载详情（简介、导演、演员等）
-            const enrichMovies = Promise.all(movies.map(fetchDetail));
-            const enrichTvs = Promise.all(tvs.map(fetchDetail));
-
-            enrichMovies.then(enriched => setMovieRanking(enriched));
-            enrichTvs.then(enriched => setTvRanking(enriched));
+            if (type === 'movie') {
+                setMovieRanking(sorted);
+            } else {
+                setTvRanking(sorted);
+            }
         } catch (error) {
-            console.error('获取排行榜数据失败:', error);
+            console.error(`获取${type}排行榜失败:`, error);
+        } finally {
             setLoading(false);
         }
     }, [limit]);
 
-    useEffect(() => {
-        fetchRanking();
-    }, [fetchRanking]);
+    /**
+     * 按需加载某部影片的详情并更新排行榜数据。
+     * 由组件在 hover/选中时调用，不再批量请求。
+     */
+    const enrichMovie = useCallback(async (movieId: string, type: 'movie' | 'tv') => {
+        const detail = await fetchDetail(movieId);
+        if (!detail) return;
 
-    return { movieRanking, tvRanking, loading };
+        const updater = (prev: RankingMovie[]) =>
+            prev.map(m => m.id === movieId ? { ...m, ...detail } : m);
+
+        if (type === 'movie') {
+            setMovieRanking(updater);
+        } else {
+            setTvRanking(updater);
+        }
+    }, [fetchDetail]);
+
+    // 首次只加载电影排行榜（TV 在切换 tab 时由外部调用 fetchType('tv')）
+    useEffect(() => {
+        fetchType('movie');
+    }, [fetchType]);
+
+    return {
+        movieRanking,
+        tvRanking,
+        loading,
+        /** 触发某个类型排行榜的加载（TV tab 切换时调用） */
+        fetchType,
+        /** 按需加载某部影片的详情 */
+        enrichMovie,
+    };
 }
