@@ -87,15 +87,17 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
 
       {/* Content Type Toggle (Capsule Liquid Glass - Fixed & Centered) */}
       <div className="mb-4 flex justify-center">
-        <div className="content-type-toggle relative w-[28rem] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full grid grid-cols-3 backdrop-blur-2xl shadow-lg ring-1 ring-white/10 overflow-hidden">
-          {/* Sliding Indicator - 三等分定位 */}
+        <div className="content-type-toggle relative w-[28rem] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full grid grid-cols-4 backdrop-blur-2xl shadow-lg ring-1 ring-white/10 overflow-hidden">
+          {/* Sliding Indicator - 四等分定位 */}
           <div
             className="absolute rounded-full transition-all duration-400 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none"
             style={{
               top: '4px',
               bottom: '4px',
-              width: 'calc(33.333% - 4px)',
-              left: contentType === 'movie' ? '4px' : 'calc(33.333%)',
+              width: 'calc(25% - 4px)',
+              left: contentType === 'movie' ? '4px' : contentType === 'tv' ? '25%' : undefined,
+              transform: contentType === 'movie' || contentType === 'tv' ? undefined : 'none',
+              display: contentType === 'movie' || contentType === 'tv' ? undefined : 'none',
               background: 'var(--accent-color)',
               boxShadow: '0 0 15px rgba(0,122,255,0.4)',
             }}
@@ -114,6 +116,12 @@ export function PopularFeatures({ onSearch }: PopularFeaturesProps) {
               }`}
           >
             电视剧
+          </button>
+          <button
+            onClick={() => router.push('/iptv')}
+            className="relative z-10 py-2.5 text-sm font-bold transition-colors duration-300 cursor-pointer flex justify-center items-center text-[var(--text-color-secondary)] hover:text-[var(--text-color)]"
+          >
+            直播
           </button>
           <button
             onClick={handleMidnightClick}

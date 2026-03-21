@@ -10,6 +10,7 @@ import { LogoIcon } from '@/components/ui/LogoIcon';
 import { getSession, clearSession, hasPermission, type AuthSession } from '@/lib/store/auth-store';
 import { LogOut, User, Crown, Share2 } from 'lucide-react';
 import { SearchBox } from '@/components/search/SearchBox';
+import { MobileSearchOverlay } from '@/components/search/MobileSearchOverlay';
 import { Button } from '@/components/ui/Button';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { AuthModal } from '@/components/auth/AuthModal';
@@ -136,13 +137,31 @@ export function Navbar({
 
                         {/* 首页：搜索框 */}
                         {!isPlayer && onSearch && (
-                            <div className="flex-1 min-w-0 max-w-2xl mx-1 sm:mx-auto" style={{ isolation: 'isolate' }}>
-                                <SearchBox
-                                    onSearch={handleSearch}
-                                    onClear={handleClear}
-                                    initialQuery={initialQuery}
-                                />
-                            </div>
+                            <>
+                                {/* 移动端：搜索图标按钮 */}
+                                <button
+                                    onClick={() => setMobileSearchOpen(true)}
+                                    className="flex sm:!hidden flex-1 items-center gap-2 px-3 py-2 rounded-xl text-sm truncate transition-colors"
+                                    style={{
+                                        color: 'var(--text-color-secondary)',
+                                        background: 'var(--glass-bg, rgba(255,255,255,0.04))',
+                                        border: '1px solid var(--glass-border, rgba(255,255,255,0.06))',
+                                    }}
+                                >
+                                    <Icons.Search size={16} className="shrink-0 opacity-50" />
+                                    <span className="truncate opacity-60">
+                                        {initialQuery || '搜索电影、电视剧、综艺...'}
+                                    </span>
+                                </button>
+                                {/* 桌面端：内嵌搜索框 */}
+                                <div className="hidden sm:block flex-1 min-w-0 max-w-2xl mx-1 sm:mx-auto" style={{ isolation: 'isolate' }}>
+                                    <SearchBox
+                                        onSearch={handleSearch}
+                                        onClear={handleClear}
+                                        initialQuery={initialQuery}
+                                    />
+                                </div>
+                            </>
                         )}
 
                         {/* 中间弹性占位（播放页） */}
@@ -155,7 +174,7 @@ export function Navbar({
                             {!isPlayer && hasPermission('iptv_access') && (
                                 <Link
                                     href="/iptv"
-                                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                    className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
                                     aria-label="直播"
                                     title="直播"
                                     data-focusable
@@ -231,7 +250,7 @@ export function Navbar({
                             {!isPlayer && (
                                 <Link
                                     href="/download"
-                                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                    className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
                                     aria-label="下载 App"
                                     title="下载 App"
                                     data-focusable
@@ -247,7 +266,7 @@ export function Navbar({
                             {/* 设置 */}
                             <Link
                                 href={settingsHref}
-                                className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
+                                className="hidden sm:flex w-8 h-8 sm:w-9 sm:h-9 items-center justify-center rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-all duration-200 cursor-pointer"
                                 aria-label="设置"
                                 data-focusable
                             >
@@ -262,6 +281,16 @@ export function Navbar({
                     </div>
                 </div>
             </div>
+
+            {/* 移动端全屏搜索 */}
+            {onSearch && (
+                <MobileSearchOverlay
+                    isOpen={mobileSearchOpen}
+                    onClose={() => setMobileSearchOpen(false)}
+                    onSearch={handleSearch}
+                    initialQuery={initialQuery}
+                />
+            )}
 
             {/* 登录/注册弹窗 */}
             <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />

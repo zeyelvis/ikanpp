@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTrendingStore } from '@/lib/store/trending-store';
 
 interface RankingMovie {
     id: string;
@@ -45,6 +46,7 @@ export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
     const loadingRef = useRef(true);
     // 缓存已加载的详情，避免重复请求
     const detailCacheRef = useRef<Map<string, Partial<RankingMovie>>>(new Map());
+    const updateTrending = useTrendingStore(s => s.updateFromRanking);
 
     // 获取单个影片详情（带缓存）
     const fetchDetail = useCallback(async (movieId: string): Promise<Partial<RankingMovie> | null> => {
@@ -95,8 +97,12 @@ export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
 
             if (type === 'movie') {
                 setMovieRanking(sorted);
+                // 电影数据到了，先用电影数据更新热搜
+                updateTrending(sorted, []);
             } else {
                 setTvRanking(sorted);
+                // 电视剧数据到了，再更新一次（电影数据用空数组占位，store 内部会合并）
+                updateTrending([], sorted);
             }
             setError(null);
         } catch (err: any) {
