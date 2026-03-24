@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useRankingData } from './hooks/useRankingData';
 
-/** 带加载/失败占位的海报卡片 */
+/** 带加载骨架 / 失败占位的海报图片 */
 function PosterImage({ src, alt, sizes, className, style, fill = true }: {
     src: string; alt: string; sizes: string; className?: string;
     style?: React.CSSProperties; fill?: boolean;
@@ -20,22 +20,20 @@ function PosterImage({ src, alt, sizes, className, style, fill = true }: {
     const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
     return (
         <>
-            {status !== 'loaded' && (
-                <div className="absolute inset-0 flex items-center justify-center"
-                     style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.9), rgba(15,15,30,0.95))' }}>
-                    {status === 'loading' && (
-                        <div className="w-6 h-6 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
-                    )}
-                    {status === 'error' && (
-                        <div className="text-center px-2">
-                            <svg className="w-6 h-6 mx-auto mb-1 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <rect x="3" y="3" width="18" height="18" rx="2" />
-                                <circle cx="8.5" cy="8.5" r="1.5" />
-                                <path d="M21 15l-5-5L5 21" />
-                            </svg>
-                            <p className="text-[10px] text-white/30 line-clamp-2">{alt}</p>
-                        </div>
-                    )}
+            {/* 加载中 → 骨架屏闪光动画 */}
+            {status === 'loading' && (
+                <div className="absolute inset-0 skeleton-shimmer rounded-none" />
+            )}
+            {/* 加载失败 → 图标 + 标题占位 */}
+            {status === 'error' && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center"
+                     style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.95), rgba(15,15,30,0.98))' }}>
+                    <svg className="w-8 h-8 mb-2 opacity-15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 21" />
+                    </svg>
+                    <p className="text-[10px] text-white/25 line-clamp-2 px-2 text-center">{alt}</p>
                 </div>
             )}
             <Image
@@ -438,7 +436,7 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
             </div>
 
             {/* === 手机端：紧凑横向滚动 === */}
-            <div className="sm:hidden">
+            <div className="block sm:!hidden">
                 <div className="flex items-center justify-between mb-2 px-1">
                     <span className="text-sm font-semibold text-[var(--text-color)]">
                         🔥 {contentType === 'movie' ? '电影' : '电视剧'}热门榜
