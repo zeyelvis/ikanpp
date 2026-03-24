@@ -12,6 +12,47 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useRankingData } from './hooks/useRankingData';
 
+/** 带加载/失败占位的海报卡片 */
+function PosterImage({ src, alt, sizes, className, style, fill = true }: {
+    src: string; alt: string; sizes: string; className?: string;
+    style?: React.CSSProperties; fill?: boolean;
+}) {
+    const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
+    return (
+        <>
+            {status !== 'loaded' && (
+                <div className="absolute inset-0 flex items-center justify-center"
+                     style={{ background: 'linear-gradient(135deg, rgba(30,30,50,0.9), rgba(15,15,30,0.95))' }}>
+                    {status === 'loading' && (
+                        <div className="w-6 h-6 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
+                    )}
+                    {status === 'error' && (
+                        <div className="text-center px-2">
+                            <svg className="w-6 h-6 mx-auto mb-1 opacity-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <path d="M21 15l-5-5L5 21" />
+                            </svg>
+                            <p className="text-[10px] text-white/30 line-clamp-2">{alt}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+            <Image
+                src={src}
+                alt={alt}
+                fill={fill}
+                className={`${className || ''} ${status === 'loaded' ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+                style={style}
+                sizes={sizes}
+                unoptimized
+                onLoad={() => setStatus('loaded')}
+                onError={() => setStatus('error')}
+            />
+        </>
+    );
+}
+
 interface HeroSlideshowProps {
     contentType: 'movie' | 'tv';
     onSearch?: (query: string) => void;
@@ -179,25 +220,19 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
                     {/* 背景图：优先 TMDB Backdrop，降级为海报模糊 */}
                     <div className="absolute inset-0 transition-opacity duration-500">
                         {activeBackdrop ? (
-                            <Image
+                            <PosterImage
                                 src={activeBackdrop}
-                                alt=""
-                                fill
+                                alt={active.title}
                                 className="object-cover transition-all duration-700"
                                 style={{ objectPosition: 'center 25%' }}
                                 sizes="45vw"
-                                unoptimized
-                                aria-hidden="true"
                             />
                         ) : (
-                            <Image
+                            <PosterImage
                                 src={active.cover}
-                                alt=""
-                                fill
+                                alt={active.title}
                                 className="object-cover scale-125 blur-2xl brightness-[0.3] saturate-150"
                                 sizes="45vw"
-                                unoptimized
-                                aria-hidden="true"
                             />
                         )}
                         {/* 渐变叠加 — 底部文字区域加深，上半部分保持透明 */}
@@ -350,13 +385,11 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
                                 onClick={() => handleMovieClick(movie)}
                             >
                                 {/* 海报 */}
-                                <Image
+                                <PosterImage
                                     src={movie.cover}
                                     alt={movie.title}
-                                    fill
                                     className="object-cover transition-transform duration-500 group-hover/card:scale-110"
                                     sizes="150px"
-                                    unoptimized
                                 />
 
                                 {/* 排名角标 */}
@@ -424,7 +457,7 @@ export function HeroSlideshow({ contentType, onSearch }: HeroSlideshowProps) {
                             className="relative shrink-0 w-[120px] h-[180px] rounded-xl overflow-hidden cursor-pointer group/mcard"
                             onClick={() => handleMovieClick(movie)}
                         >
-                            <Image src={movie.cover} alt={movie.title} fill className="object-cover" sizes="120px" unoptimized />
+                            <PosterImage src={movie.cover} alt={movie.title} className="object-cover" sizes="120px" />
                             <div className="absolute top-0 left-0 z-10">
                                 <div
                                     className="w-6 h-6 flex items-center justify-center text-[10px] font-black text-white"
