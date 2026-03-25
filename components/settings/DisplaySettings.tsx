@@ -9,6 +9,8 @@ import { type SearchDisplayMode } from '@/lib/store/settings-store';
 import { Switch } from '@/components/ui/Switch';
 import { useTheme } from '@/components/ThemeProvider';
 import { Icons } from '@/components/ui/Icon';
+import { setTVMode } from '@/lib/hooks/useTVDetection';
+import { useIsTV } from '@/lib/contexts/TVContext';
 
 interface DisplaySettingsProps {
     realtimeLatency: boolean;
@@ -28,6 +30,10 @@ export function DisplaySettings({
     onRememberScrollPositionChange,
 }: DisplaySettingsProps) {
     const { theme, setTheme } = useTheme();
+    const isTV = useIsTV();
+    const tvModeSetting = typeof window !== 'undefined'
+        ? (localStorage.getItem('kvideo-tv-mode') || 'auto')
+        : 'auto';
 
     const themeOptions: { value: 'system' | 'light' | 'dark'; label: string; icon: React.ReactNode; desc: string }[] = [
         { value: 'system', label: '跟随系统', icon: <Icons.Monitor size={18} />, desc: '自动适配系统主题' },
@@ -60,6 +66,36 @@ export function DisplaySettings({
                                 <span className="text-sm font-semibold">{opt.label}</span>
                                 <span className="text-xs opacity-70 hidden sm:block">{opt.desc}</span>
                             </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* TV Mode Selector */}
+            <div className="mb-6">
+                <h3 className="font-medium text-[var(--text-color)] mb-2">
+                    📺 电视模式
+                    {isTV && <span className="ml-2 text-xs text-emerald-400 font-normal">(当前已激活)</span>}
+                </h3>
+                <p className="text-sm text-[var(--text-color-secondary)] mb-4">
+                    在电视/大屏设备上放大字体和按钮，支持遥控器方向键导航
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                    {([
+                        { value: 'auto', label: '自动检测', desc: '根据设备自动判断' },
+                        { value: 'on', label: '强制开启', desc: '始终使用电视布局' },
+                        { value: 'off', label: '关闭', desc: '使用默认布局' },
+                    ] as const).map((opt) => (
+                        <button
+                            key={opt.value}
+                            onClick={() => setTVMode(opt.value)}
+                            className={`px-3 py-3 rounded-[var(--radius-2xl)] border text-center font-medium transition-all duration-200 cursor-pointer ${tvModeSetting === opt.value
+                                ? 'bg-[var(--accent-color)] border-[var(--accent-color)] text-white shadow-[0_4px_12px_rgba(var(--accent-color-rgb),0.3)]'
+                                : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)]'
+                                }`}
+                        >
+                            <div className="text-sm font-semibold">{opt.label}</div>
+                            <div className="text-xs opacity-70 hidden sm:block mt-1">{opt.desc}</div>
                         </button>
                     ))}
                 </div>

@@ -416,3 +416,50 @@ body.tv-mode *:not([data-focusable]) {
 body.tv-mode *:hover {
     transform: none !important;
 }
+
+/* --- 14. 登录弹窗 — TV 全屏表单 --- */
+body.tv-mode .hidden.md\:flex {
+    /* 隐藏左侧宣传面板 */
+    display: none !important;
+}
+
+body.tv-mode input[type="email"],
+body.tv-mode input[type="password"] {
+    font-size: 1.5rem !important;
+    padding: 1rem 1.25rem 1rem 3rem !important;
+    min-height: 4rem;
+}
+
+body.tv-mode form button[type="submit"] {
+    font-size: 1.25rem !important;
+    padding: 1rem 2rem !important;
+    min-height: 4rem;
+}
+
+/* --- 15. 播放器页面 — TV 适配 --- */
+body.tv-mode video,
+body.tv-mode [class*="player"] video {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* 集数按钮放大 */
+body.tv-mode [class*="episode"] button,
+body.tv-mode [class*="Episode"] button {
+    min-height: 3.5rem;
+    font-size: 1.1rem !important;
+    padding: 0.75rem 1.5rem !important;
+}
+
+/* --- 16. 电影海报卡片放大 --- */
+body.tv-mode .grid[class*="grid-cols"] > * {
+    min-height: 200px;
+}
+
+/* --- 17. 标签按钮放大 --- */
+body.tv-mode [class*="tag"],
+body.tv-mode [class*="Tag"] {
+    font-size: 1rem !important;
+    padding: 0.625rem 1.25rem !important;
+    min-height: 2.75rem;
+}
