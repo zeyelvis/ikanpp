@@ -10,6 +10,39 @@ interface DoubanMovie {
 
 const PAGE_SIZE = 20;
 
+// ── localStorage 缓存 ──────────────────────────
+const CACHE_PREFIX = 'kvideo-popular-';
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 分钟
+
+interface CacheEntry {
+    data: DoubanMovie[];
+    ts: number;
+}
+
+function getCached(key: string): DoubanMovie[] | null {
+    try {
+        const raw = localStorage.getItem(CACHE_PREFIX + key);
+        if (!raw) return null;
+        const entry: CacheEntry = JSON.parse(raw);
+        if (Date.now() - entry.ts > CACHE_TTL_MS) {
+            localStorage.removeItem(CACHE_PREFIX + key);
+            return null;
+        }
+        return entry.data;
+    } catch {
+        return null;
+    }
+}
+
+function setCache(key: string, data: DoubanMovie[]) {
+    try {
+        const entry: CacheEntry = { data, ts: Date.now() };
+        localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+    } catch {
+        // 缓存满了等情况静默忽略
+    }
+}
+
 export function usePopularMovies(selectedTag: string, tags: any[], contentType: 'movie' | 'tv' = 'movie') {
     const [movies, setMovies] = useState<DoubanMovie[]>([]);
     const [loading, setLoading] = useState(false);
@@ -26,19 +59,40 @@ export function usePopularMovies(selectedTag: string, tags: any[], contentType: 
 
     // 加载指定页
     const loadPage = useCallback(async (tag: string, pageNum: number, signal?: AbortSignal) => {
-        setLoading(true);
-        try {
-            const tagValue = resolveTagValue(tag);
+        const tagValue = resolveTagValue(tag);
+        const cacheKey = `${contentType}-${tagValue}-${pageNum}`;
 
-            // 创建超时控制器 (12 秒)
+        // 先尝试 localStorage 缓存（仅首页）
+        if (pageNum === 0) {
+            const cached = getCached(cacheKey);
+            if (cached && cached.length > 0) {
+                setMovies(cached);
+                setHasMore(cached.length === PAGE_SIZE);
+                // 后台静默刷新（不显示 loading）
+                fetchFromNetwork(tagValue, pageNum, signal, cacheKey, true);
+                return;
+            }
+        }
+
+        setLoading(true);
+        await fetchFromNetwork(tagValue, pageNum, signal, cacheKey, false);
+    }, [resolveTagValue, contentType]);
+
+    // 实际网络请求
+    const fetchFromNetwork = useCallback(async (
+        tagValue: string, pageNum: number, signal: AbortSignal | undefined,
+        cacheKey: string, isSilent: boolean
+    ) => {
+        try {
+            // 超时 12 秒
             const timeoutController = new AbortController();
             const timer = setTimeout(() => timeoutController.abort(), 12000);
 
-            // 合并外部 signal 和超时 signal
+            // 合并 signals
             const combinedSignal = signal
                 ? (AbortSignal as any).any
                     ? (AbortSignal as any).any([signal, timeoutController.signal])
-                    : timeoutController.signal  // 降级：只用超时信号
+                    : timeoutController.signal
                 : timeoutController.signal;
 
             const response = await fetch(
@@ -56,15 +110,19 @@ export function usePopularMovies(selectedTag: string, tags: any[], contentType: 
             if (!signal?.aborted) {
                 setMovies(newMovies);
                 setHasMore(newMovies.length === PAGE_SIZE);
-                setLoading(false);
+                if (!isSilent) setLoading(false);
+                // 写入缓存
+                if (newMovies.length > 0) setCache(cacheKey, newMovies);
             }
         } catch (error: any) {
             if (signal?.aborted) return;
             console.error('加载失败:', error);
-            setHasMore(false);
-            setLoading(false);
+            if (!isSilent) {
+                setHasMore(false);
+                setLoading(false);
+            }
         }
-    }, [resolveTagValue, contentType]);
+    }, [contentType]);
 
     // 标签或类型变化时回到第 1 页
     useEffect(() => {

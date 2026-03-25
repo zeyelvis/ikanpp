@@ -22,6 +22,31 @@ interface UseRankingDataOptions {
     limit?: number;
 }
 
+// ── localStorage 缓存 ──────────────────────────
+const CACHE_PREFIX = 'kvideo-ranking-';
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 分钟
+
+interface CacheEntry { data: RankingMovie[]; ts: number; }
+
+function getRankingCache(type: string): RankingMovie[] | null {
+    try {
+        const raw = localStorage.getItem(CACHE_PREFIX + type);
+        if (!raw) return null;
+        const entry: CacheEntry = JSON.parse(raw);
+        if (Date.now() - entry.ts > CACHE_TTL_MS) {
+            localStorage.removeItem(CACHE_PREFIX + type);
+            return null;
+        }
+        return entry.data;
+    } catch { return null; }
+}
+
+function setRankingCache(type: string, data: RankingMovie[]) {
+    try {
+        localStorage.setItem(CACHE_PREFIX + type, JSON.stringify({ data, ts: Date.now() }));
+    } catch { /* 静默忽略 */ }
+}
+
 // 带超时的 fetch
 function fetchWithTimeout(url: string, timeoutMs: number = 12000): Promise<Response> {
     const controller = new AbortController();
@@ -80,11 +105,37 @@ export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
 
         // 用 ref 判断是否需要设置全局 loading，避免闭包陈旧问题
         const shouldShowLoading = loadingRef.current;
+
+        // ── 先尝试 localStorage 缓存 ──────────────────
+        const cached = getRankingCache(type);
+        if (cached && cached.length > 0) {
+            if (type === 'movie') {
+                setMovieRanking(cached);
+                updateTrending(cached, []);
+            } else {
+                setTvRanking(cached);
+                updateTrending([], cached);
+            }
+            // 有缓存 → 立即结束 loading，后台静默刷新
+            if (shouldShowLoading) {
+                setLoading(false);
+                loadingRef.current = false;
+            }
+            // 后台刷新（不影响 UI）
+            fetchFromNetwork(type, false);
+            return;
+        }
+
+        // 无缓存 → 显示 loading
         if (shouldShowLoading) {
             setLoading(true);
             setError(null);
         }
+        await fetchFromNetwork(type, shouldShowLoading);
+    }, [limit]);
 
+    // 实际网络请求（可静默执行）
+    const fetchFromNetwork = useCallback(async (type: 'movie' | 'tv', updateLoading: boolean) => {
         try {
             const res = await fetchWithTimeout(
                 `/api/douban/recommend?type=${type}&tag=${encodeURIComponent('热门')}&page_limit=${limit}&page_start=0`,
@@ -97,24 +148,23 @@ export function useRankingData({ limit = 10 }: UseRankingDataOptions = {}) {
 
             if (type === 'movie') {
                 setMovieRanking(sorted);
-                // 电影数据到了，先用电影数据更新热搜
                 updateTrending(sorted, []);
             } else {
                 setTvRanking(sorted);
-                // 电视剧数据到了，再更新一次（电影数据用空数组占位，store 内部会合并）
                 updateTrending([], sorted);
             }
+            // 写入缓存
+            if (sorted.length > 0) setRankingCache(type, sorted);
             setError(null);
         } catch (err: any) {
             const isTimeout = err?.name === 'AbortError';
             const message = isTimeout ? '加载超时，请重试' : '加载失败，请检查网络';
             console.error(`获取${type}排行榜失败:`, err);
-            // 只在首次加载失败时设置全局错误
-            if (shouldShowLoading) {
+            if (updateLoading) {
                 setError(message);
             }
         } finally {
-            if (shouldShowLoading) {
+            if (updateLoading) {
                 setLoading(false);
                 loadingRef.current = false;
             }
