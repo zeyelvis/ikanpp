@@ -22,6 +22,8 @@ export function useHlsPlayer({
     const { adFilterMode, adKeywords } = usePlayerSettings();
     const isAdFilterEnabled = adFilterMode !== 'off';
 
+    // 导出 hlsRef 供 useStallDetection 等外部 hook 使用
+
     useEffect(() => {
         const video = videoRef.current;
         if (!video || !src) return;
@@ -81,11 +83,13 @@ export function useHlsPlayer({
                         xhr.withCredentials = false;
                     },
 
-                    // Buffer Settings
+                    // Buffer Settings（TV 浏览器需要更宽松的参数）
                     maxBufferLength: 60,
                     maxMaxBufferLength: 120,
                     maxBufferSize: 60 * 1000 * 1000,
-                    maxBufferHole: 0.5,
+                    maxBufferHole: 2,        // 从 0.5 增大：容忍更大的 buffer 空洞，避免 seek 后卡死
+                    nudgeOffset: 0.2,        // 新增：卡顿时自动微幅前进跳过空洞
+                    nudgeMaxRetry: 5,        // 新增：最多重试 5 次微幅前进
 
                     // Start with more buffer
                     startFragPrefetch: true,
@@ -168,32 +172,45 @@ export function useHlsPlayer({
                 const MAX_RETRIES = 3;
 
                 hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        switch (data.type) {
-                            case Hls.ErrorTypes.NETWORK_ERROR:
-                                networkErrorRetries++;
-                                if (networkErrorRetries <= MAX_RETRIES) {
-                                    hls?.startLoad();
-                                } else {
-                                    onError?.('网络错误：无法加载视频流');
-                                    hls?.destroy();
-                                }
-                                break;
-                            case Hls.ErrorTypes.MEDIA_ERROR:
-                                mediaErrorRetries++;
-                                if (mediaErrorRetries <= MAX_RETRIES) {
-                                    hls?.recoverMediaError();
-                                } else {
-                                    onError?.('媒体错误：视频格式不支持或已损坏');
-                                    hls?.destroy();
-                                }
-                                break;
-                            default:
-                                console.error('[HLS] Fatal error, cannot recover:', data);
-                                onError?.(`致命错误：${data.details || '未知错误'}`);
-                                hls?.destroy();
-                                break;
+                    // === Non-fatal 错误处理（特别是 seek 后的 buffer stall）===
+                    if (!data.fatal) {
+                        if (data.details === Hls.ErrorDetails.BUFFER_STALLED_ERROR) {
+                            console.warn('[HLS] Non-fatal buffer stall detected, attempting recovery...');
+                            // 主动重新开始加载当前位置的分片
+                            if (video.currentTime > 0) {
+                                hls?.startLoad(video.currentTime);
+                            }
                         }
+                        return;
+                    }
+
+                    // === Fatal 错误处理 ===
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            networkErrorRetries++;
+                            if (networkErrorRetries <= MAX_RETRIES) {
+                                console.warn(`[HLS] Network error, retry ${networkErrorRetries}/${MAX_RETRIES}`);
+                                hls?.startLoad();
+                            } else {
+                                onError?.('网络错误：无法加载视频流');
+                                hls?.destroy();
+                            }
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            mediaErrorRetries++;
+                            if (mediaErrorRetries <= MAX_RETRIES) {
+                                console.warn(`[HLS] Media error, recovering... ${mediaErrorRetries}/${MAX_RETRIES}`);
+                                hls?.recoverMediaError();
+                            } else {
+                                onError?.('媒体错误：视频格式不支持或已损坏');
+                                hls?.destroy();
+                            }
+                            break;
+                        default:
+                            console.error('[HLS] Fatal error, cannot recover:', data);
+                            onError?.(`致命错误：${data.details || '未知错误'}`);
+                            hls?.destroy();
+                            break;
                     }
                 });
             } else {
@@ -385,4 +402,7 @@ export function useHlsPlayer({
             extraBlobs.forEach(url => URL.revokeObjectURL(url));
         };
     }, [src, videoRef, autoPlay, onAutoPlayPrevented, onError, isAdFilterEnabled, adFilterMode, adKeywords]);
+
+    // 导出 hlsRef 供外部 hook 调用 HLS 恢复 API
+    return { hlsRef };
 }

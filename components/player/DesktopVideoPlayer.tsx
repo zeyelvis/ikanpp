@@ -90,7 +90,7 @@ export function DesktopVideoPlayer({
   const shouldForceLandscape = data.isFullscreen && fullscreenType === 'window' && isIOS && !isLandscape;
 
   // Initialize HLS Player
-  useHlsPlayer({
+  const { hlsRef } = useHlsPlayer({
     videoRef: refs.videoRef,
     src,
     autoPlay: shouldAutoPlay
@@ -148,11 +148,30 @@ export function DesktopVideoPlayer({
   // Sensitive stalling detection (e.g. video stuck but HTML5 state says playing)
   useStallDetection({
     videoRef,
+    hlsRef,
     isPlaying: data.isPlaying,
     isDraggingProgressRef: refs.isDraggingProgressRef,
     setIsLoading: actions.setIsLoading,
     isTransitioningToNextEpisode
   });
+
+  // Seek 后声画同步恢复：seek 完成时主动重新加载 + 恢复解码器
+  const handleSeeked = React.useCallback(() => {
+    const hls = hlsRef.current;
+    const video = videoRef.current;
+    if (!hls || !video) return;
+
+    // 主动要求 HLS 从新位置开始加载分片
+    hls.startLoad(video.currentTime);
+
+    // 延迟 500ms 检测声画同步：如果此时仍在缓冲，调用 recoverMediaError 强制重新同步解码器
+    setTimeout(() => {
+      if (video && !video.paused && video.readyState < 3) {
+        console.warn('[Seek] Post-seek buffer stall, recovering media...');
+        hls.recoverMediaError();
+      }
+    }, 500);
+  }, [hlsRef, videoRef]);
 
   const {
     handleMouseMove,
@@ -214,6 +233,7 @@ export function DesktopVideoPlayer({
             onError={handleVideoError}
             onWaiting={() => setIsLoading(true)}
             onCanPlay={() => setIsLoading(false)}
+            onSeeked={handleSeeked}
             onClick={!isMobile ? (e) => {
               togglePlay();
             } : undefined}
