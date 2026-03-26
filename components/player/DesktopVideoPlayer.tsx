@@ -155,8 +155,63 @@ export function DesktopVideoPlayer({
     isTransitioningToNextEpisode
   });
 
-  // Seek 后声画同步恢复：seek 完成时主动重新加载 + 恢复解码器
+  // === Seek 帧冻结遮罩 ===
+  // 在 seek 前截取当前帧覆盖在视频上方，防止 TV 浏览器 seek 时闪白屏/黑屏
+  const seekOverlayRef = React.useRef<HTMLImageElement | null>(null);
+  const seekCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  const handleSeeking = React.useCallback(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    if (!video || !container || video.readyState < 2) return;
+
+    try {
+      // 创建离屏 canvas 截取当前帧
+      if (!seekCanvasRef.current) {
+        seekCanvasRef.current = document.createElement('canvas');
+      }
+      const canvas = seekCanvasRef.current;
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 360;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // 将截图转为 dataURL
+      const frameUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      // 创建/复用覆盖 img 元素
+      if (!seekOverlayRef.current) {
+        const img = document.createElement('img');
+        img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;pointer-events:none;transition:opacity 0.15s ease-out;';
+        seekOverlayRef.current = img;
+      }
+      const overlay = seekOverlayRef.current;
+      overlay.src = frameUrl;
+      overlay.style.opacity = '1';
+
+      // 插入到视频旁边（同层级）
+      const videoParent = video.parentElement;
+      if (videoParent && !videoParent.contains(overlay)) {
+        videoParent.appendChild(overlay);
+      }
+    } catch {
+      // canvas 截图可能因 CORS 失败，静默忽略（回退到原始行为）
+    }
+  }, [videoRef, containerRef]);
+
+  // Seek 完成后：移除帧冻结遮罩 + HLS 声画同步恢复
   const handleSeeked = React.useCallback(() => {
+    // 淡出并移除帧冻结遮罩
+    const overlay = seekOverlayRef.current;
+    if (overlay && overlay.parentElement) {
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.parentElement?.removeChild(overlay);
+      }, 160);
+    }
+
+    // HLS 声画同步恢复
     const hls = hlsRef.current;
     const video = videoRef.current;
     if (!hls || !video) return;
@@ -164,7 +219,7 @@ export function DesktopVideoPlayer({
     // 主动要求 HLS 从新位置开始加载分片
     hls.startLoad(video.currentTime);
 
-    // 延迟 500ms 检测声画同步：如果此时仍在缓冲，调用 recoverMediaError 强制重新同步解码器
+    // 延迟 500ms 检测声画同步：如果此时仍在缓冲，调用 recoverMediaError 强制同步解码器
     setTimeout(() => {
       if (video && !video.paused && video.readyState < 3) {
         console.warn('[Seek] Post-seek buffer stall, recovering media...');
@@ -232,7 +287,16 @@ export function DesktopVideoPlayer({
             onLoadedMetadata={handleLoadedMetadata}
             onError={handleVideoError}
             onWaiting={() => setIsLoading(true)}
-            onCanPlay={() => setIsLoading(false)}
+            onCanPlay={() => {
+              setIsLoading(false);
+              // canPlay 时也清除帧冻结遮罩（兜底）
+              const overlay = seekOverlayRef.current;
+              if (overlay?.parentElement) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.parentElement?.removeChild(overlay), 160);
+              }
+            }}
+            onSeeking={handleSeeking}
             onSeeked={handleSeeked}
             onClick={!isMobile ? (e) => {
               togglePlay();
