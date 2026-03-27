@@ -25,6 +25,8 @@ interface VideoPlayerProps {
   episodeName?: string;
   // Expose current time to parent
   externalTimeRef?: React.MutableRefObject<number>;
+  // 下一集 URL（用于预加载）
+  nextEpisodeUrl?: string | null;
 }
 
 export function VideoPlayer({
@@ -39,6 +41,7 @@ export function VideoPlayer({
   videoTitle,
   episodeName,
   externalTimeRef,
+  nextEpisodeUrl,
 }: VideoPlayerProps) {
   const [videoError, setVideoError] = useState<string>('');
   const [useProxy, setUseProxy] = useState(false);
@@ -244,6 +247,7 @@ export function VideoPlayer({
           isReversed={isReversed}
           videoTitle={videoTitle}
           episodeName={episodeName}
+          nextEpisodeUrl={nextEpisodeUrl}
         />
       )}
     </Card>

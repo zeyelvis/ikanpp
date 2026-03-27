@@ -1,4 +1,24 @@
-const CACHE_NAME = 'video-cache-v2';
+/**
+ * Service Worker — KVideo 多层缓存策略
+ * 
+ * 缓存层级：
+ * 1. video-cache   — HLS m3u8 manifest + ts 分片（Stale-While-Revalidate / Cache-First）
+ * 2. img-cache     — 图片代理缓存（Cache-First，7 天过期）
+ * 3. api-cache     — API 响应数据（Network-First，5 分钟过期）
+ * 4. page-cache    — 页面 shell（Network-First，离线回退）
+ */
+
+const VIDEO_CACHE = 'video-cache-v3';
+const IMG_CACHE = 'img-cache-v1';
+const API_CACHE = 'api-cache-v1';
+const PAGE_CACHE = 'page-cache-v1';
+
+const ALL_CACHES = [VIDEO_CACHE, IMG_CACHE, API_CACHE, PAGE_CACHE];
+
+// 图片缓存 7 天过期
+const IMG_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+// API 缓存 5 分钟过期
+const API_MAX_AGE = 5 * 60 * 1000;
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -9,7 +29,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
+                    if (!ALL_CACHES.includes(cacheName)) {
                         return caches.delete(cacheName);
                     }
                 })
@@ -21,72 +41,88 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
 
-    // Skip proxy API routes - they handle their own caching and URL rewriting
-    if (url.pathname.startsWith('/api/proxy')) {
-        return; // Let the request pass through without Service Worker intervention
+    // 跳过非 GET 请求
+    if (event.request.method !== 'GET') return;
+
+    // 跳过视频流代理
+    if (url.pathname.startsWith('/api/proxy')) return;
+
+    // === 1. 图片代理缓存（Cache-First）===
+    if (url.pathname.startsWith('/api/img-proxy')) {
+        event.respondWith(
+            caches.open(IMG_CACHE).then(async (cache) => {
+                const cached = await cache.match(event.request);
+                if (cached) {
+                    // 检查是否过期（通过自定义 header）
+                    const cachedTime = cached.headers.get('x-sw-cached-at');
+                    if (cachedTime && (Date.now() - parseInt(cachedTime)) < IMG_MAX_AGE) {
+                        return cached;
+                    }
+                }
+                // 未命中或过期：网络请求
+                try {
+                    const response = await fetch(event.request);
+                    if (response.ok) {
+                        // 克隆并加入缓存时间戳
+                        const headers = new Headers(response.headers);
+                        headers.set('x-sw-cached-at', Date.now().toString());
+                        const timedResponse = new Response(await response.clone().arrayBuffer(), {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: headers,
+                        });
+                        cache.put(event.request, timedResponse);
+                    }
+                    return response;
+                } catch {
+                    // 网络失败，返回过期缓存（如有）
+                    return cached || new Response('Image unavailable', { status: 503 });
+                }
+            })
+        );
+        return;
     }
 
-    // Intercept HLS manifest files (.m3u8)
+    // === 2. HLS manifest 缓存（Stale-While-Revalidate）===
     if (url.pathname.endsWith('.m3u8')) {
         event.respondWith(
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(VIDEO_CACHE).then((cache) => {
                 return cache.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-                    // Always fetch fresh manifest but return cached while fetching
                     const fetchPromise = fetch(event.request).then((networkResponse) => {
-                        // Check if network response is valid
                         if (!networkResponse || networkResponse.status !== 200) {
-                            // Return the response as-is so client can see the error status
                             if (networkResponse) return networkResponse;
-                            // If no response at all, throw to trigger catch block
                             throw new Error('Network response was not ok');
                         }
                         cache.put(event.request, networkResponse.clone());
                         return networkResponse;
                     }).catch((err) => {
                         console.error('[SW] Fetch failed for manifest:', err);
-                        // If network fails, return cached response if available
-                        if (cachedResponse) {
-                            return cachedResponse;
-                        }
-                        // If no cache, return a proper error Response instead of throwing
-                        // This prevents "Load failed" and lets the client handle it
+                        if (cachedResponse) return cachedResponse;
                         return new Response('Network error', {
                             status: 503,
                             statusText: 'Service Worker: Network Unavailable'
                         });
                     });
-
-                    // Return cache immediately if available, otherwise wait for network
                     return cachedResponse || fetchPromise;
                 });
             })
         );
+        return;
     }
 
-    // Intercept video segment files (.ts)
+    // === 3. 视频分片缓存（Cache-First）===
     if (url.pathname.endsWith('.ts')) {
         event.respondWith(
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(VIDEO_CACHE).then((cache) => {
                 return cache.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-                    // Cache hit - return immediately for instant playback
-                    if (cachedResponse) {
-                        return cachedResponse;
-                    }
-
-                    // Cache miss - fetch from network
+                    if (cachedResponse) return cachedResponse;
                     return fetch(event.request).then((response) => {
-                        // Only cache valid responses
                         if (response && response.status === 200) {
                             cache.put(event.request, response.clone());
-                            return response;
                         }
-                        // If response is not valid (e.g. 403, 404), return it as is
-                        // so the browser/player can handle the error status
                         return response;
                     }).catch((error) => {
                         console.error('[SW] Failed to fetch segment:', error);
-                        // Return a proper error Response instead of throwing
-                        // This prevents "Load failed" and lets the client handle it
                         return new Response('Network error', {
                             status: 503,
                             statusText: 'Service Worker: Network Unavailable'
@@ -95,5 +131,66 @@ self.addEventListener('fetch', (event) => {
                 });
             })
         );
+        return;
+    }
+
+    // === 4. API 数据缓存（Network-First，5 分钟过期）===
+    if (url.pathname.startsWith('/api/douban') || url.pathname.startsWith('/api/search')) {
+        event.respondWith(
+            caches.open(API_CACHE).then(async (cache) => {
+                try {
+                    const response = await fetch(event.request);
+                    if (response.ok) {
+                        const headers = new Headers(response.headers);
+                        headers.set('x-sw-cached-at', Date.now().toString());
+                        const timedResponse = new Response(await response.clone().arrayBuffer(), {
+                            status: response.status,
+                            statusText: response.statusText,
+                            headers: headers,
+                        });
+                        cache.put(event.request, timedResponse);
+                    }
+                    return response;
+                } catch {
+                    // 网络失败，尝试返回缓存
+                    const cached = await cache.match(event.request);
+                    if (cached) {
+                        const cachedTime = cached.headers.get('x-sw-cached-at');
+                        if (cachedTime && (Date.now() - parseInt(cachedTime)) < API_MAX_AGE) {
+                            return cached;
+                        }
+                    }
+                    return new Response('Network error', { status: 503 });
+                }
+            })
+        );
+        return;
+    }
+
+    // === 5. 页面 shell 缓存（Network-First + 离线回退）===
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            caches.open(PAGE_CACHE).then(async (cache) => {
+                try {
+                    const response = await fetch(event.request);
+                    if (response.ok) {
+                        cache.put(event.request, response.clone());
+                    }
+                    return response;
+                } catch {
+                    // 离线：返回缓存的页面
+                    const cached = await cache.match(event.request);
+                    if (cached) return cached;
+                    // 最终回退：尝试返回首页缓存
+                    const indexCached = await cache.match('/');
+                    if (indexCached) return indexCached;
+                    return new Response('离线不可用', {
+                        status: 503,
+                        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+                    });
+                }
+            })
+        );
+        return;
     }
 });

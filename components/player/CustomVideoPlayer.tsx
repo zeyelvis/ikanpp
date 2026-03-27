@@ -18,6 +18,8 @@ interface CustomVideoPlayerProps {
   // Danmaku props
   videoTitle?: string;
   episodeName?: string;
+  // 下一集 URL（用于预加载）
+  nextEpisodeUrl?: string | null;
 }
 
 /**

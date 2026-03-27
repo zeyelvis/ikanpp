@@ -29,6 +29,11 @@ export const MovieCard = memo(function MovieCard({ movie, onMovieClick, index = 
   const [fallbackError, setFallbackError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // 外部图片走代理（绕过防盗链 + 长效缓存）
+  const proxiedCover = movie.cover?.startsWith('http')
+    ? `/api/img-proxy?url=${encodeURIComponent(movie.cover)}`
+    : movie.cover;
+
   return (
     <Link
       href={`/?q=${encodeURIComponent(movie.title)}`}
@@ -58,7 +63,7 @@ export const MovieCard = memo(function MovieCard({ movie, onMovieClick, index = 
           )}
           {!imageError ? (
             <Image
-              src={movie.cover}
+              src={proxiedCover}
               alt={movie.title}
               fill
               className={`object-cover transition-transform duration-500 group-hover:scale-110 rounded-[var(--radius-2xl)] ${imageLoaded ? 'img-fade-in' : 'opacity-0'}`}

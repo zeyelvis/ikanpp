@@ -437,7 +437,17 @@ function PlayerContent() {
     if (nextEpisode) {
       handleEpisodeClick(nextEpisode, nextIndex); // handleEpisodeClick relies on state setters, which are stable
     }
-  }, [videoData, currentEpisode, isReversed, router, searchParams]); // handleEpisodeClick is not memoized, but uses stable hooks setters. wait, handleEpisodeClick is inline too!
+  }, [videoData, currentEpisode, isReversed, router, searchParams]);
+
+  // 计算下一集的播放 URL（用于预加载）
+  const nextEpisodeUrl = useMemo(() => {
+    const episodes = videoData?.episodes;
+    if (!episodes || episodes.length <= 1) return null;
+    const nextIdx = isReversed ? currentEpisode - 1 : currentEpisode + 1;
+    if (nextIdx < 0 || nextIdx >= episodes.length) return null;
+    const nextEp = episodes[nextIdx];
+    return nextEp?.url || null;
+  }, [videoData, currentEpisode, isReversed]); // handleEpisodeClick is not memoized, but uses stable hooks setters. wait, handleEpisodeClick is inline too!
 
   // Redirect if no params at all
   if (isTitleOnlyMode && !titleSearching && !titleSearchError && !title) {
@@ -494,6 +504,7 @@ function PlayerContent() {
                 videoTitle={videoData?.vod_name || title || ''}
                 episodeName={videoData?.episodes?.[currentEpisode]?.name || ''}
                 externalTimeRef={playerTimeRef}
+                nextEpisodeUrl={nextEpisodeUrl}
               />
               <div className="hidden lg:block">
                 <VideoMetadata

@@ -6,6 +6,7 @@ import { useDesktopPlayerLogic } from './hooks/useDesktopPlayerLogic';
 import { useHlsPlayer } from './hooks/useHlsPlayer';
 import { useAutoSkip } from './hooks/useAutoSkip';
 import { useStallDetection } from './hooks/useStallDetection';
+import { useEpisodePrefetch } from './hooks/useEpisodePrefetch';
 import { DesktopControlsWrapper } from './desktop/DesktopControlsWrapper';
 import { DesktopOverlayWrapper } from './desktop/DesktopOverlayWrapper';
 import { DanmakuCanvas } from './DanmakuCanvas';
@@ -30,6 +31,8 @@ interface DesktopVideoPlayerProps {
   // Danmaku props
   videoTitle?: string;
   episodeName?: string;
+  // 下一集 URL（用于预加载）
+  nextEpisodeUrl?: string | null;
 }
 
 export function DesktopVideoPlayer({
@@ -45,6 +48,7 @@ export function DesktopVideoPlayer({
   isReversed = false,
   videoTitle = '',
   episodeName = '',
+  nextEpisodeUrl = null,
 }: DesktopVideoPlayerProps) {
   const { refs, data, actions } = useDesktopPlayerState();
   const { fullscreenType: settingsFullscreenType } = usePlayerSettings();
@@ -117,6 +121,11 @@ export function DesktopVideoPlayer({
   // Reset loading state and show spinner when source changes
   React.useEffect(() => {
     setIsLoading(true);
+    // 换集时重置，避免新集初始加载触发帧冻结
+    hasPlayedRef.current = false;
+    if (seekOverlayRef.current?.parentElement) {
+      seekOverlayRef.current.parentElement.removeChild(seekOverlayRef.current);
+    }
   }, [src, setIsLoading]);
 
   const logic = useDesktopPlayerLogic({
@@ -155,15 +164,25 @@ export function DesktopVideoPlayer({
     isTransitioningToNextEpisode
   });
 
+  // 下一集预加载：outro 阶段提前拉取 manifest + 首个分片
+  useEpisodePrefetch({
+    nextEpisodeUrl,
+    isOutroActive,
+    isPlaying: data.isPlaying,
+  });
+
   // === Seek 帧冻结遮罩 ===
-  // 在 seek 前截取当前帧覆盖在视频上方，防止 TV 浏览器 seek 时闪白屏/黑屏
+  // 在用户主动 seek 前截取当前帧覆盖在视频上方，防止 TV 浏览器闪白屏/黑屏
+  // ⚠️ 只在视频首次播放后才启用，避免初始加载阶段 HLS 内部 seeking 事件触发多次闪白
   const seekOverlayRef = React.useRef<HTMLImageElement | null>(null);
   const seekCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const hasPlayedRef = React.useRef(false);
 
   const handleSeeking = React.useCallback(() => {
     const video = videoRef.current;
     const container = containerRef.current;
-    if (!video || !container || video.readyState < 2) return;
+    // 门控：初始加载阶段不启用帧冻结（HLS 内部 seek 会触发多次 seeking 事件）
+    if (!video || !container || video.readyState < 2 || !hasPlayedRef.current) return;
 
     try {
       // 创建离屏 canvas 截取当前帧
@@ -210,6 +229,9 @@ export function DesktopVideoPlayer({
         overlay.parentElement?.removeChild(overlay);
       }, 160);
     }
+
+    // 初始加载阶段不执行声画恢复（避免干扰 HLS 正常初始化）
+    if (!hasPlayedRef.current) return;
 
     // HLS 声画同步恢复
     const hls = hlsRef.current;
@@ -281,7 +303,7 @@ export function DesktopVideoPlayer({
             x-webkit-airplay="allow"
             playsInline={true} // Crucial for iOS custom fullscreen to work without native player taking over
             controls={false} // Explicitly disable native controls
-            onPlay={handlePlay}
+            onPlay={() => { hasPlayedRef.current = true; handlePlay(); }}
             onPause={handlePause}
             onTimeUpdate={handleTimeUpdateEvent}
             onLoadedMetadata={handleLoadedMetadata}
